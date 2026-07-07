@@ -1,24 +1,14 @@
 import mongoose from "mongoose";
 
+const { Schema,model } = mongoose;
 const userSchema = new mongoose.Schema(
   {
-    //===== Basic Information=====
-    firstName: {
+    //===== Basic Information =====
+    fullName: {
       type: String,
       required: true,
       trim: true,
     },
-
-    lastName: {
-      type: String,
-      trim: true,
-    },
-
-    fullName: {
-      type: String,
-      trim: true,
-    },
-
     email: {
       type: String,
       required: true,
@@ -42,7 +32,7 @@ const userSchema = new mongoose.Schema(
 
     profileImage: {
       type: String,
-      default: "",
+      default: "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg",
     },
 
     //===== Role =====
@@ -66,6 +56,7 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "blocked", "deleted"],
       default: "active",
     },
+
     //===== Address =====
     address: {
       street: String,
@@ -74,48 +65,18 @@ const userSchema = new mongoose.Schema(
       country: String,
       pincode: String,
     },
-    //=====Saved Properties =====
+
+    //===== Saved Properties =====
     wishlist: [
       {
         type: Schema.Types.ObjectId,
         ref: "Property",
       },
     ],
-    // Agent Details
-    agencyName: String,
-    
-    experience: Number,
-
-    licenseNumber: String,
-
-    bio: String,
-
-    // Authentication
-    refreshToken: String,
-
-    lastLogin: Date,
-
-    loginProvider: {
-      type: String,
-      enum: ["local", "google"],
-      default: "local",
-    },
-
-    // Settings
-    notifications: {
-      email: {
-        type: Boolean,
-        default: true,
-      },
-      sms: {
-        type: Boolean,
-        default: false,
-      },
-    },
   },
   {
-    timestamps: true,
+    timestamps: true, // ✅ now correctly in the options object
   }
 );
 
-export default mongoose.model("User", userSchema);
+export const User = model("User", userSchema);
