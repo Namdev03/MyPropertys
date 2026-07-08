@@ -1,6 +1,12 @@
-import { Owner } from "../Model/ownerModel";
-import bcrypt from "bcryptjs";
+import { Owner } from "../Model/ownerModel.js";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+const cookieOption = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "PRODUCTION", // false in dev (since dev is http)
+    sameSite: process.env.NODE_ENV === "PRODUCTION" ? "strict" : "lax",
+    maxAge: 24 * 60 * 60 * 1000,
+}
 //===== Owner Sign Up Controller =====
 export const ownerSignUp = async (req, res) => {
   try {
@@ -62,8 +68,7 @@ export const ownerSignIn = async (req, res) => {
         expiresIn: "1d",
       }
     );
-    res.cookie("ownertoken", token, cookieOption);
-
+    res.cookie("ownerToken", token, cookieOption);
     return res.status(200).json({
       success: true,
       message: `Welcome ${owner.fullName}`,
@@ -77,6 +82,22 @@ export const ownerSignIn = async (req, res) => {
         isPhoneVerified: owner.isPhoneVerified,
         status: owner.status,
       },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+//===== Owner Logout Controller =====
+export const ownerLogout = async (req, res) => {
+  try {
+    res.clearCookie("ownerToken");
+
+    return res.status(200).json({
+      success: true,
+      message: "Owner logged out successfully.",
     });
   } catch (error) {
     return res.status(500).json({

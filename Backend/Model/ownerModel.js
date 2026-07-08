@@ -69,4 +69,4 @@ const ownerSchema = new mongoose.Schema(
   }
 );
 
-export const Owner = model("User", ownerSchema);
+export const Owner = model("Owner", ownerSchema);
