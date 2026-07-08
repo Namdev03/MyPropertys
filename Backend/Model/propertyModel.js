@@ -1,4 +1,4 @@
-import{ Schema,model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const propertySchema = new Schema(
   {
@@ -31,7 +31,25 @@ const propertySchema = new Schema(
       ],
       required: true,
     },
+    propertyImage: {
+      type: [String],
+      required: true,
+    },
 
+    rooms: {
+      type: [String],
+      required: true,
+    },
+
+    bathrooms: {
+      type: [String],
+      required: true,
+    },
+
+    hall: {
+      type: [String],
+      default: [],
+    },
     purpose: {
       type: String,
       enum: ["Rent", "Sale"],
@@ -97,22 +115,12 @@ const propertySchema = new Schema(
         },
       },
     },
-
-    // Images
-    images: [
-      {
-        publicId: String,
-        url: String,
-      },
-    ],
-
     // Amenities
     amenities: [
       {
         type: String,
       },
     ],
-
     // Rules
     rules: {
       petsAllowed: Boolean,
@@ -140,7 +148,7 @@ const propertySchema = new Schema(
       type: Number,
       default: 0,
     },
-
+    
     totalLikes: {
       type: Number,
       default: 0,

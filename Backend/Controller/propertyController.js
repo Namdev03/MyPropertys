@@ -1,7 +1,10 @@
-import Property from "../models/property.model.js";
+import Property from "../model/propertyModel.js";
+import cloudinary from "../config/cloudinary.js";
+import getDataUri from "../utils/dataUri.js";
 
 export const addNewProperty = async (req, res) => {
   try {
+    const owner = req.user._id;
     const {
       title,
       description,
@@ -9,41 +12,61 @@ export const addNewProperty = async (req, res) => {
       purpose,
       furnishing,
       bhk,
-      bathrooms,
       balconies,
       floor,
       totalFloors,
-      area,          // { value, unit }
       price,
       securityDeposit,
       maintenanceCharge,
       availableFrom,
-      address,       // { houseNo, street, landmark, city, state, country, pincode, location }
       amenities,
-      rules,         // { petsAllowed, smokingAllowed, bachelorsAllowed, familyOnly }
-      parking,       // { bike, car }
+      rules,
+      parking,
       nearbyPlaces,
+      address,
+      area,
     } = req.body;
+    const uploadImages = async (files = []) => {
+      const imageUrls = [];
 
-    // Basic required-field validation
-    if (!title || !description || !propertyType || !price) {
-      return res.status(400).json({
-        message: "Title, description, propertyType, and price are required",
-      });
-    }
+      for (const file of files) {
+        const fileUri = getDataUri(file);
 
-    // Handle uploaded images (assuming multer + cloudinary middleware attaches req.files)
-  
+        const uploaded = await cloudinary.uploader.upload(
+          fileUri.content,
+          {
+            folder: "myproperty",
+          }
+        );
+        imageUrls.push(uploaded.secure_url);
+      }
+      return imageUrls;
+    };
+    const propertyImages = await uploadImages(
+      req.files.propertyImage || []
+    );
+    const roomImages = await uploadImages(
+      req.files.rooms || []
+    );
+    const bathroomImages = await uploadImages(
+      req.files.bathrooms || []
+    );
+    const hallImages = await uploadImages(
+      req.files.hall || []
+    );
 
-    const newProperty = await Property.create({
-      owner: req.id, // comes from userAuth middleware
+    const property = await Property.create({
+      owner,
       title,
       description,
       propertyType,
+      propertyImage: propertyImages,
+      rooms: roomImages,
+      bathrooms: bathroomImages,
+      hall: hallImages,
       purpose,
       furnishing,
       bhk,
-      bathrooms,
       balconies,
       floor,
       totalFloors,
@@ -52,19 +75,23 @@ export const addNewProperty = async (req, res) => {
       securityDeposit,
       maintenanceCharge,
       availableFrom,
-      address,
-      images,
       amenities,
       rules,
       parking,
       nearbyPlaces,
+      address,
     });
+
     return res.status(201).json({
+      success: true,
       message: "Property added successfully",
-      property: newProperty,
+      property,
     });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
+      success: false,
       message: error.message,
     });
   }

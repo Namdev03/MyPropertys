@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const { Schema,model } = mongoose;
-const userSchema = new mongoose.Schema(
+const ownerSchema = new mongoose.Schema(
   {
     //===== Basic Information =====
     fullName: {
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
     //===== Role =====
     role: {
       type: String,
-      default: "buyer",
+      default: "owner",
     },
     //===== Verification =====
     isEmailVerified: {
@@ -55,7 +55,6 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "blocked", "deleted"],
       default: "active",
     },
-
     //===== Address =====
     address: {
       street: String,
@@ -64,18 +63,10 @@ const userSchema = new mongoose.Schema(
       country: String,
       pincode: String,
     },
-
-    //===== Saved Properties =====
-    wishlist: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Property",
-      },
-    ],
   },
   {
-    timestamps: true, // ✅ now correctly in the options object
+    timestamps: true, 
   }
 );
 
-export const User = model("User", userSchema);
+export const Owner = model("User", ownerSchema);
