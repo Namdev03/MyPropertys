@@ -1,10 +1,10 @@
-import Property from "../model/propertyModel.js";
+import {Property} from "../model/propertyModel.js";
 import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/dataUri.js";
 
 export const addNewProperty = async (req, res) => {
   try {
-    const owner = req.user._id;
+    const owner = req.id;
     const {
       title,
       description,
@@ -31,11 +31,12 @@ export const addNewProperty = async (req, res) => {
 
       for (const file of files) {
         const fileUri = getDataUri(file);
-
+        console.log(fileUri);
+        
         const uploaded = await cloudinary.uploader.upload(
-          fileUri.content,
+          fileUri,
           {
-            folder: "myproperty",
+            folder: "myproperty"   
           }
         );
         imageUrls.push(uploaded.secure_url);
@@ -54,7 +55,8 @@ export const addNewProperty = async (req, res) => {
     const hallImages = await uploadImages(
       req.files.hall || []
     );
-
+   console.log(req.files);
+   
     const property = await Property.create({
       owner,
       title,

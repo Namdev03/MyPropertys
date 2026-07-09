@@ -7,16 +7,19 @@ const propertySchema = new Schema(
       ref: "User",
       required: true,
     },
+
     // Basic Details
     title: {
       type: String,
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       required: true,
     },
+
     propertyType: {
       type: String,
       enum: [
@@ -27,42 +30,55 @@ const propertySchema = new Schema(
         "Hostel",
         "Office",
         "Shop",
-        "Warehouse"
+        "Warehouse",
       ],
       required: true,
-    },
-    propertyImage: {
-      type: [String],
-      required: true,
+      trim: true,
     },
 
-    rooms: {
-      type: [String],
-      required: true,
-    },
-
-    bathrooms: {
-      type: [String],
-      required: true,
-    },
-
-    hall: {
-      type: [String],
-      default: [],
-    },
     purpose: {
       type: String,
       enum: ["Rent", "Sale"],
       default: "Rent",
     },
+
     furnishing: {
       type: String,
-      enum: ["Fully Furnished", "Semi Furnished", "Unfurnished"],
+      enum: [
+        "Fully Furnished",
+        "Semi Furnished",
+        "Unfurnished",
+      ],
     },
-    bhk: {
+
+    // Images
+    propertyImages: {
+      type: [String],
+      required: true,
+    },
+
+    roomImages: {
+      type: [String],
+      required: true,
+    },
+
+    bathroomImages: {
+      type: [String],
+      required: true,
+    },
+
+    hallImages: {
+      type: [String],
+      default: [],
+    },
+
+    // Property Details
+    bhk: Number,
+
+    bathrooms: {
       type: Number,
+      default: 1,
     },
-    bathrooms: Number,
 
     balconies: Number,
 
@@ -95,7 +111,7 @@ const propertySchema = new Schema(
       default: "Available",
     },
 
-    // Addres
+    // Address
     address: {
       houseNo: String,
       street: String,
@@ -115,12 +131,10 @@ const propertySchema = new Schema(
         },
       },
     },
+
     // Amenities
-    amenities: [
-      {
-        type: String,
-      },
-    ],
+    amenities: [String],
+
     // Rules
     rules: {
       petsAllowed: Boolean,
@@ -148,7 +162,7 @@ const propertySchema = new Schema(
       type: Number,
       default: 0,
     },
-    
+
     totalLikes: {
       type: Number,
       default: 0,
@@ -163,7 +177,7 @@ const propertySchema = new Schema(
       type: Number,
       default: 0,
     },
-    // Verification
+
     isVerified: {
       type: Boolean,
       default: false,
@@ -174,4 +188,4 @@ const propertySchema = new Schema(
   }
 );
 
-export default Property = model("Property", propertySchema);
+export const Property = model("Property", propertySchema);
