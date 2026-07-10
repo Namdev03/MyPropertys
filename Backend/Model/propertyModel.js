@@ -92,7 +92,7 @@ const propertySchema = new Schema(
     ],
     owner: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Owner",
       required: true,
     },
   },

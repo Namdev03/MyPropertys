@@ -2,6 +2,7 @@ import {Property} from "../model/propertyModel.js";
 import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/dataUri.js";
 
+//=====Add New Property=====//
 export const addNewProperty = async (req, res) => {
   try {
     const {
@@ -76,6 +77,7 @@ export const addNewProperty = async (req, res) => {
 
     // Create Property
     const property = await Property.create({
+      owner,
       title,
       description,
       price,
@@ -93,7 +95,6 @@ export const addNewProperty = async (req, res) => {
       roomImages,
       bathroomImages,
       hallImages,
-      owner,
     });
 
     return res.status(201).json({
@@ -105,6 +106,31 @@ export const addNewProperty = async (req, res) => {
     console.error(error);
 
     return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+//=====Get All Property======
+export const allProperty = async (req, res) => {
+  try {
+    const properties = await Property.find()
+      .populate("owner", "fullName email phone profileImage")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message:
+        properties.length > 0
+          ? "Properties fetched successfully."
+          : "No properties found.",
+      totalProperties: properties.length,
+      properties,
+    });
+  } catch (error) {
+   return res.status(500).json({
       success: false,
       message: "Internal Server Error",
       error: error.message,
