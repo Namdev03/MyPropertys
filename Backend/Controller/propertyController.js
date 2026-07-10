@@ -1,4 +1,4 @@
-import {Property} from "../model/propertyModel.js";
+import { Property } from "../model/propertyModel.js";
 import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/dataUri.js";
 
@@ -55,7 +55,7 @@ export const addNewProperty = async (req, res) => {
 
         imageUrls.push(uploaded.secure_url);
       }
-      
+
       return imageUrls;
     };
 
@@ -112,14 +112,12 @@ export const addNewProperty = async (req, res) => {
     });
   }
 };
-
 //=====Get All Property======
 export const allProperty = async (req, res) => {
   try {
     const properties = await Property.find()
       .populate("owner", "fullName email phone profileImage")
       .sort({ createdAt: -1 });
-
     return res.status(200).json({
       success: true,
       message:
@@ -130,7 +128,145 @@ export const allProperty = async (req, res) => {
       properties,
     });
   } catch (error) {
-   return res.status(500).json({
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+//=====Get Property by params======
+export const getProperty = async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+    const properties = await Property.findById(propertyId)
+      .populate("owner", "fullName email phone profileImage")
+      .sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      message: "Properties fetched successfully.",
+      properties
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+//=====Edit propery Details======
+export const editProperty = async (req, res) => {
+  try {
+    const ownerId = req.id;
+    const propertyId = req.params.id;
+    const {
+      title,
+      description,
+      price,
+      propertyType,
+      bedrooms,
+      bathrooms,
+      area,
+      address,
+      city,
+      state,
+      country,
+      amenities,
+      isAvailable,
+    } = req.body;
+
+    if (!ownerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found.",
+      });
+    }
+
+    // Check property ownership
+    if (property.owner.toString() !== ownerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this property.",
+      });
+    }
+    // Helper function for image upload
+    const uploadImages = async (files = []) => {
+      const imageUrls = [];
+      for (const file of files) {
+        const fileUri = getDataUri(file);
+
+        const uploaded = await cloudinary.uploader.upload(fileUri, {
+          folder: "MyProperty",
+        });
+
+        imageUrls.push(uploaded.secure_url);
+      }
+
+      return imageUrls;
+    };
+
+    // Upload new images only if provided
+    const propertyImages =
+      req.files?.propertyImages?.length > 0
+        ? await uploadImages(req.files.propertyImages)
+        : property.propertyImages;
+
+    const roomImages =
+      req.files?.roomImages?.length > 0
+        ? await uploadImages(req.files.roomImages)
+        : property.roomImages;
+
+    const bathroomImages =
+      req.files?.bathroomImages?.length > 0
+        ? await uploadImages(req.files.bathroomImages)
+        : property.bathroomImages;
+
+    const hallImages =
+      req.files?.hallImages?.length > 0
+        ? await uploadImages(req.files.hallImages)
+        : property.hallImages;
+
+    // Update property details
+    if (title) property.title = title;
+    if (description) property.description = description;
+    if (price) property.price = price;
+    if (propertyType) property.propertyType = propertyType;
+    if (bedrooms !== undefined) property.bedrooms = bedrooms;
+    if (bathrooms !== undefined) property.bathrooms = bathrooms;
+    if (area) property.area = area;
+    if (address) property.address = address;
+    if (city) property.city = city;
+    if (state) property.state = state;
+    if (country) property.country = country;
+    if (amenities) property.amenities = amenities;
+    if (isAvailable !== undefined) property.isAvailable = isAvailable;
+    // Update images only if new images are uploaded
+    if (propertyImages.length > 0) property.propertyImages = propertyImages;
+    if (roomImages.length > 0) property.roomImages = roomImages;
+    if (bathroomImages.length > 0) property.bathroomImages = bathroomImages;
+    if (hallImages.length > 0) property.hallImages = hallImages;
+
+    await property.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Property updated successfully.",
+      property,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
       error: error.message,

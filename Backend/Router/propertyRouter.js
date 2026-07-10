@@ -1,5 +1,5 @@
 import expess from "express";
-import { addNewProperty, allProperty } from "../Controller/propertyController.js";
+import { addNewProperty, allProperty, editProperty, getProperty } from "../Controller/propertyController.js";
 import { ownerAuth } from "../middleware/ownerMiddelware.js";
 import upload from "../Config/multer.js";
 import { userAuth } from "../middleware/userMiddleware.js";
@@ -14,3 +14,7 @@ propertyRouter.post('/add', ownerAuth,upload.fields([
 ]), addNewProperty)
 //=====Get All Property======
 propertyRouter.get('/properties',userAuth,allProperty)
+//=====Get Property by params======
+propertyRouter.get('/property/:id',userAuth,getProperty)
+//=====Edit propery Details======
+propertyRouter.post('/property/:id',ownerAuth,editProperty)
