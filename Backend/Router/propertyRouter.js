@@ -5,9 +5,9 @@ import upload from "../Config/multer.js";
 
 export const propertyRouter = expess.Router();
 //=====Add new property=====
-propertyRouter.post('/add', ownerAuth, upload.fields([
-    { name: "propertyImage", maxCount: 10 },
-    { name: "rooms", maxCount: 20 },
-    { name: "bathrooms", maxCount: 10 },
-    { name: "hall", maxCount: 10 },
+propertyRouter.post('/add', ownerAuth,upload.fields([
+  { name: "propertyImages", maxCount: 10 },
+  { name: "roomImages", maxCount: 10 },
+  { name: "bathroomImages", maxCount: 10 },
+  { name: "hallImages", maxCount: 10 },
 ]), addNewProperty)

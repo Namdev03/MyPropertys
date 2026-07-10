@@ -2,13 +2,6 @@ import { Schema, model } from "mongoose";
 
 const propertySchema = new Schema(
   {
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    // Basic Details
     title: {
       type: String,
       required: true,
@@ -20,167 +13,87 @@ const propertySchema = new Schema(
       required: true,
     },
 
-    propertyType: {
-      type: String,
-      enum: [
-        "Apartment",
-        "Villa",
-        "House",
-        "PG",
-        "Hostel",
-        "Office",
-        "Shop",
-        "Warehouse",
-      ],
-      required: true,
-      trim: true,
-    },
-
-    purpose: {
-      type: String,
-      enum: ["Rent", "Sale"],
-      default: "Rent",
-    },
-
-    furnishing: {
-      type: String,
-      enum: [
-        "Fully Furnished",
-        "Semi Furnished",
-        "Unfurnished",
-      ],
-    },
-
-    // Images
-    propertyImages: {
-      type: [String],
-      required: true,
-    },
-
-    roomImages: {
-      type: [String],
-      required: true,
-    },
-
-    bathroomImages: {
-      type: [String],
-      required: true,
-    },
-
-    hallImages: {
-      type: [String],
-      default: [],
-    },
-
-    // Property Details
-    bhk: Number,
-
-    bathrooms: {
-      type: Number,
-      default: 1,
-    },
-
-    balconies: Number,
-
-    floor: Number,
-
-    totalFloors: Number,
-
-    area: {
-      value: Number,
-      unit: {
-        type: String,
-        default: "sq.ft",
-      },
-    },
-
     price: {
       type: Number,
       required: true,
     },
 
-    securityDeposit: Number,
-
-    maintenanceCharge: Number,
-
-    availableFrom: Date,
-
-    status: {
+    propertyType: {
       type: String,
-      enum: ["Available", "Booked", "Rented", "Inactive"],
-      default: "Available",
+      enum: ["Apartment", "House", "Villa", "PG", "Office"],
+      required: true,
     },
 
-    // Address
+    bedrooms: {
+      type: Number,
+      default: 0,
+    },
+
+    bathrooms: {
+      type: Number,
+      default: 0,
+    },
+
+    area: {
+      type: Number, // sqft
+      required: true,
+    },
+
     address: {
-      houseNo: String,
-      street: String,
-      landmark: String,
-      city: String,
-      state: String,
-      country: String,
-      pincode: String,
-
-      location: {
-        type: {
-          type: String,
-          enum: ["Point"],
-        },
-        coordinates: {
-          type: [Number], // [longitude, latitude]
-        },
-      },
+      type: String,
+      required: true,
     },
 
-    // Amenities
-    amenities: [String],
-
-    // Rules
-    rules: {
-      petsAllowed: Boolean,
-      smokingAllowed: Boolean,
-      bachelorsAllowed: Boolean,
-      familyOnly: Boolean,
+    city: {
+      type: String,
+      required: true,
     },
 
-    // Parking
-    parking: {
-      bike: Boolean,
-      car: Boolean,
+    state: {
+      type: String,
+      required: true,
     },
 
-    // Nearby Places
-    nearbyPlaces: [
+    country: {
+      type: String,
+      default: "India",
+    },
+    amenities:
+    {
+      type: String,
+      enum: ["wifi", "gym", "swimming pool", "parking", "garden", "security", "elevator"],
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
+    propertyImages: [
       {
-        name: String,
-        distance: String,
+        type: String,
       },
     ],
 
-    // Statistics
-    totalViews: {
-      type: Number,
-      default: 0,
-    },
+    roomImages: [
+      {
+        type: String,
+      },
+    ],
 
-    totalLikes: {
-      type: Number,
-      default: 0,
-    },
+    bathroomImages: [
+      {
+        type: String,
+      },
+    ],
 
-    averageRating: {
-      type: Number,
-      default: 0,
-    },
-
-    reviewsCount: {
-      type: Number,
-      default: 0,
-    },
-
-    isVerified: {
-      type: Boolean,
-      default: false,
+    hallImages: [
+      {
+        type: String,
+      },
+    ],
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
