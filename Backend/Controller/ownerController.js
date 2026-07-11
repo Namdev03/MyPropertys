@@ -106,3 +106,23 @@ export const ownerLogout = async (req, res) => {
     });
   }
 };
+//=====Owner Profile ====
+export const ownerProfile  = async (req,res) => {
+    try {
+        const ownerId = req.id;
+        const owner = await Owner.findById(ownerId);
+        if (!owner) {
+            return res.status(404).json({
+                message:"Owner not found"
+            }) 
+        };
+        return res.status(200).json({
+            message:"owner found successfully",
+            owner
+        })
+    } catch (error) {
+         return res.status(500).json({
+            message:error.message
+        });
+    }
+}

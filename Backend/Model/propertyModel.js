@@ -95,6 +95,10 @@ const propertySchema = new Schema(
       ref: "Owner",
       required: true,
     },
+    wishlistby:[{
+      type:Schema.Types.ObjectId,
+      ref:"User"
+    }]
   },
   {
     timestamps: true,

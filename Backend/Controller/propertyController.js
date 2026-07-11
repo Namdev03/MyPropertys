@@ -1,6 +1,7 @@
 import { Property } from "../model/propertyModel.js";
 import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/dataUri.js";
+import { User } from "../Model/userModel.js";
 
 //=====Add New Property=====//
 export const addNewProperty = async (req, res) => {
@@ -264,12 +265,77 @@ export const editProperty = async (req, res) => {
       property,
     });
   } catch (error) {
-    console.error(error);
-
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
-      error: error.message,
+      message: error.message,
+    });
+  }
+};
+//=====whislist property =====
+export const wishListProperty = async (req, res) => {
+  try {
+    const userId = req.id;
+    const propertyId = req.params.id;
+
+    // Check user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check property
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    const isWishListed = property.wishlistby.includes(userId);
+
+    if (isWishListed) {
+      // Remove from wishlist
+      await Promise.all([
+        User.updateOne(
+          { _id: userId },
+          { $pull: { wishlist: propertyId } }
+        ),
+        Property.updateOne(
+          { _id: propertyId },
+          { $pull: { wishlistby: userId } }
+        ),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        message: "Property removed from wishlist",
+      });
+    }
+
+    // Add to wishlist
+    await Promise.all([
+      User.updateOne(
+        { _id: userId },
+        { $addToSet: { wishlist: propertyId } }
+      ),
+      Property.updateOne(
+        { _id: propertyId },
+        { $addToSet: { wishlistby: userId } }
+      ),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Property added to wishlist",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

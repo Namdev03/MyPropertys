@@ -77,6 +77,7 @@ export const userSignIn = async (req, res) => {
         });
     }
 };
+//=====Logout User ====
 export const Logout =async (req,res) => {
     try {
         res.clearCookie("token",cookieOption);
@@ -84,6 +85,28 @@ export const Logout =async (req,res) => {
             message:"successfullt logout"
         })
     } catch (error) {
-        
+        return res.status(500).json({
+            message:error.message
+        });
+    }
+}
+//=====user Profile ====
+export const userProfile  = async (req,res) => {
+    try {
+        const userId = req.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message:"user not found"
+            }) 
+        };
+        return res.status(200).json({
+            message:"user found successfully",
+            user
+        })
+    } catch (error) {
+         return res.status(500).json({
+            message:error.message
+        });
     }
 }
