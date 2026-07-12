@@ -339,3 +339,81 @@ export const wishListProperty = async (req, res) => {
     });
   }
 };
+//===== Book Property =====
+export const bookProperty = async (req, res) => {
+  try {
+    const userId = req.id;
+    const propertyId = req.params.id;
+
+    // Check user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check property
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    // Check property availability
+    if (!property.isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Property is not available for booking",
+      });
+    }
+
+    // Check if already booked
+    const isBooked = user.booked.includes(propertyId);
+
+    if (isBooked) {
+      await Promise.all([
+        User.updateOne(
+          { _id: userId },
+          { $pull: { booked: propertyId } }
+        ),
+        Property.updateOne(
+          { _id: propertyId },
+          { $pull: { bookedby: userId } }
+        ),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        booked: false,
+        message: "Booking cancelled successfully",
+      });
+    }
+
+    // Book property
+    await Promise.all([
+      User.updateOne(
+        { _id: userId },
+        { $addToSet: { booked: propertyId } }
+      ),
+      Property.updateOne(
+        { _id: propertyId },
+        { $addToSet: { bookedby: userId } }
+      ),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      booked: true,
+      message: "Property booked successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -72,6 +72,12 @@ const userSchema = new mongoose.Schema(
         ref: "Property",
       },
     ],
+     booked: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Property",
+      },
+    ],
   },
   {
     timestamps: true, // ✅ now correctly in the options object

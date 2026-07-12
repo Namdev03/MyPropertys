@@ -5,6 +5,7 @@ import { userRouter } from "./Router/userRouter.js";
 import cookieParser from "cookie-parser";
 import { ownerRouter } from "./Router/ownerRouter.js";
 import { propertyRouter } from "./Router/propertyRouter.js";
+import { feedBackRouter } from "./Router/feedBackRouter.js";
 
 const server = express()
 
@@ -23,7 +24,8 @@ server.use('/owner',ownerRouter)
 
 //=====Property Router=====
 server.use('/property',propertyRouter)
-
+//=====FeedBack Router=====
+server.use('/feedback',feedBackRouter)
 //=====Start server===== 
 server.listen(port, async() =>  { 
     console.log(`Server is live on port ${port}`);

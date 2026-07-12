@@ -95,10 +95,20 @@ const propertySchema = new Schema(
       ref: "Owner",
       required: true,
     },
-    wishlistby:[{
-      type:Schema.Types.ObjectId,
-      ref:"User"
-    }]
+    wishlistby: [{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }],
+    bookedby: [{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }],
+    feedback: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "FeedBack",
+      },
+    ],
   },
   {
     timestamps: true,

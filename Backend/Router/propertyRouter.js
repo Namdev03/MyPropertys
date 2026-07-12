@@ -1,5 +1,5 @@
 import expess from "express";
-import { addNewProperty, allProperty, editProperty, getProperty, wishListProperty } from "../Controller/propertyController.js";
+import { addNewProperty, allProperty, bookProperty, editProperty, getProperty, wishListProperty } from "../Controller/propertyController.js";
 import { ownerAuth } from "../middleware/ownerMiddelware.js";
 import upload from "../Config/multer.js";
 import { userAuth } from "../middleware/userMiddleware.js";
@@ -25,3 +25,5 @@ propertyRouter.post('/property/:id',ownerAuth,upload.fields([
 ]),editProperty)
 //=====whislist property =====
 propertyRouter.post('/wishlist/:id',userAuth,wishListProperty)
+//===== Book Property =====
+propertyRouter.post('/book/:id',userAuth,bookProperty)

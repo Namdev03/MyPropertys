@@ -7,7 +7,7 @@ const cookieOption = {
     sameSite: process.env.NODE_ENV === "PRODUCTION" ? "strict" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
 }
-//===== Owner Sign Up Controller =====
+//===== Owner Sign up =====
 export const ownerSignUp = async (req, res) => {
   try {
     const { fullName, email, password} = req.body;
@@ -39,7 +39,7 @@ export const ownerSignUp = async (req, res) => {
     });
   }
 };
-//===== Owner Sign In Controller =====
+//===== Owner Sign in =====
 export const ownerSignIn = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,7 +90,7 @@ export const ownerSignIn = async (req, res) => {
     });
   }
 };
-//===== Owner Logout Controller =====
+//===== Owner Logout  =====
 export const ownerLogout = async (req, res) => {
   try {
     res.clearCookie("ownerToken");
@@ -126,3 +126,36 @@ export const ownerProfile  = async (req,res) => {
         });
     }
 }
+// ===== Me Route =====
+export const meRoute = async (req, res) => {
+  try {
+    const ownerId = req.id;
+
+    if (!ownerId) {
+      return res.status(401).json({
+        success: false,
+        message: "owner not authenticated",
+      });
+    }
+
+    const owner = await Owner.findById(ownerId).select("-password");
+
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        message: "owner not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Owner authenticated",
+      owner,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

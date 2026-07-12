@@ -1,5 +1,5 @@
 import express from "express"
-import { Logout, userProfile, userSignIn, userSignUp } from "../Controller/userController.js"
+import { Logout, meRoute, userProfile, userSignIn, userSignUp } from "../Controller/userController.js"
 import { userAuth } from "../middleware/userMiddleware.js"
 export const userRouter = express.Router()
 //===== user Singup ====
@@ -10,3 +10,5 @@ userRouter.post('/signin',userSignIn)
 userRouter.get('/logout',Logout)
 //=====user Profile ====
 userRouter.get('/profile',userAuth,userProfile)
+// ===== Me Route =====
+userRouter.get("/me",userAuth,meRoute)
