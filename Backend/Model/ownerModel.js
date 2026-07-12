@@ -63,6 +63,9 @@ const ownerSchema = new mongoose.Schema(
       country: String,
       pincode: String,
     },
+    otp:{
+      type:String
+    }
   },
   {
     timestamps: true, 

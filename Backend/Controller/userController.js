@@ -1,6 +1,7 @@
 import { User } from "../Model/userModel.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import { sendEmail } from "../Utils/sendEmail.js";
 //===== User Sign Up =====
 const cookieOption = {
     httpOnly: true,
@@ -78,63 +79,111 @@ export const userSignIn = async (req, res) => {
     }
 };
 //=====Logout User ====
-export const Logout =async (req,res) => {
+export const Logout = async (req, res) => {
     try {
-        res.clearCookie("token",cookieOption);
+        res.clearCookie("token", cookieOption);
         return res.status(200).json({
-            message:"successfullt logout"
+            message: "successfullt logout"
         })
     } catch (error) {
         return res.status(500).json({
-            message:error.message
+            message: error.message
         });
     }
-}
+};
 //=====user Profile ====
-export const userProfile  = async (req,res) => {
+export const userProfile = async (req, res) => {
     try {
         const userId = req.id;
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
-                message:"user not found"
-            }) 
+                message: "user not found"
+            })
         };
         return res.status(200).json({
-            message:"user found successfully",
+            message: "user found successfully",
             user
         })
     } catch (error) {
-         return res.status(500).json({
-            message:error.message
+        return res.status(500).json({
+            message: error.message
+        });
+    }
+};
+// =====Send Otp using Email =====
+export const sendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                message: "Invailid Email"
+            })
+        };
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        // Save OTP
+        user.otp = otp;
+        await user.save();
+        // Send Email
+        await sendEmail({
+            to: user.email,
+            subject: "OTP Verification",
+            html: `
+        <h2>Hello ${user.fullName}</h2>
+        <h3>Your OTP is:</h3>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+      `,
+        });
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
         });
     }
 }
-// ===== Me Route =====
-export const meRoute = async (req, res) => {
+// =====Compare OTP and Reset Password using Email=====
+export const resetPassword = async (req, res) => {
   try {
-    const userId = req.id;
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated",
-      });
-    }
-
-    const user = await User.findById(userId).select("-password");
+    const {email} = req.params
+    const {otp, password } = req.body;
+      
+    // Find user
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "Invalid email",
       });
     }
 
+    // Check OTP
+    if (user.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update password
+    user.password = hashedPassword;
+    // Clear OTP
+    user.otp = null;
+    await user.save();
+
     return res.status(200).json({
       success: true,
-      message: "User authenticated",
-      user,
+      message: "Password reset successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -142,4 +191,37 @@ export const meRoute = async (req, res) => {
       message: error.message,
     });
   }
+};
+// ===== Me Route =====
+export const meRoute = async (req, res) => {
+    try {
+        const userId = req.id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated",
+            });
+        }
+
+        const user = await User.findById(userId).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "User authenticated",
+            user,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
 };

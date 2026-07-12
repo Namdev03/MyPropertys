@@ -78,6 +78,9 @@ const userSchema = new mongoose.Schema(
         ref: "Property",
       },
     ],
+    otp:{
+      type:String,
+    }
   },
   {
     timestamps: true, // ✅ now correctly in the options object
