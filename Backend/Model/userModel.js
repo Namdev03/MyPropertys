@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const { Schema,model } = mongoose;
+const { Schema, model } = mongoose;
 const userSchema = new mongoose.Schema(
   {
     //===== Basic Information =====
@@ -11,12 +11,10 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
     },
-
     phone: {
       type: String,
       unique: true,
@@ -72,14 +70,14 @@ const userSchema = new mongoose.Schema(
         ref: "Property",
       },
     ],
-     booked: [
+    booked: [
       {
         type: Schema.Types.ObjectId,
         ref: "Property",
       },
     ],
-    otp:{
-      type:String,
+    otp: {
+      type: String,
     }
   },
   {

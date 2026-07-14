@@ -386,12 +386,63 @@ export const bookProperty = async (req, res) => {
           { $pull: { bookedby: userId } }
         ),
       ]);
+      await sendEmail({
+        to: user.email,
+        subject: "Property Booking Canceletion Confirmation 🏠",
+        html: `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:8px;">
+      
+      <h2 style="color:#28a745;">Booking Canceled 🎉</h2>
+
+      <p>Hello <strong>${user.fullName}</strong>,</p>
+
+      <p>Your booking has been canceled successfully.</p>
+
+      <hr>
+
+      <h3>Property Details</h3>
+
+      <p><strong>Property:</strong> ${property.title}</p>
+
+      <p><strong>Address:</strong></p>
+
+      <p>
+        ${property.address}<br>
+        ${property.city}, ${property.state}<br>
+        ${property.country}
+      </p>
+
+      <p><strong>Price:</strong> ₹${property.price}</p>
+
+      <p><strong>Booking Date:</strong> ${new Date().toLocaleDateString()}</p>
+
+      <hr>
+
+      <p>Thank you for choosing <strong>MyProperty</strong>.</p>
+
+      <p>Best Regards,<br><strong>MyProperty Team</strong></p>
+
+    </div>
+  `,
+      });
       return res.status(200).json({
         success: true,
         booked: false,
         message: "Booking cancelled successfully",
       });
     }
+
+    // Book property
+    await Promise.all([
+      User.updateOne(
+        { _id: userId },
+        { $addToSet: { booked: propertyId } }
+      ),
+      Property.updateOne(
+        { _id: propertyId },
+        { $addToSet: { bookedby: userId } }
+      ),
+    ]);
     await sendEmail({
       to: user.email,
       subject: "Property Booking Confirmation 🏠",
@@ -431,18 +482,6 @@ export const bookProperty = async (req, res) => {
     </div>
   `,
     });
-    // Book property
-    await Promise.all([
-      User.updateOne(
-        { _id: userId },
-        { $addToSet: { booked: propertyId } }
-      ),
-      Property.updateOne(
-        { _id: propertyId },
-        { $addToSet: { bookedby: userId } }
-      ),
-    ]);
-
     return res.status(200).json({
       success: true,
       booked: true,
