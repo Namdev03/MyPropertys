@@ -2,6 +2,7 @@ import { Owner } from "../Model/ownerModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../Utils/sendEmail.js";
+import client from "../Config/twilio.js";
 const cookieOption = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "PRODUCTION", // false in dev (since dev is http)
@@ -11,21 +12,21 @@ const cookieOption = {
 //===== Owner Sign up =====
 export const ownerSignUp = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
-
+    const { fullName, email, phone, password } = req.body;
     const isExist = await Owner.findOne({ email });
-
     if (isExist) {
       return res.status(409).json({
         success: false,
         message: "Owner already exists.",
       });
     }
+    const phoneNumber = `+91${phone}`
     const hashPassword = await bcrypt.hash(password, 10);
     const owner = await Owner.create({
       fullName,
       email,
       password: hashPassword,
+      phone :phoneNumber,
       role: "Owner",
     });
     return res.status(201).json({
@@ -43,26 +44,55 @@ export const ownerSignUp = async (req, res) => {
 //===== Owner Sign in =====
 export const ownerSignIn = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { emailorPhone, password } = req.body;
 
-    const owner = await Owner.findOne({ email }).select("+password");
+    const isExist = await Owner.findOne({
+      $or: [
+        { email: emailorPhone },
+        { phone: emailorPhone },
+      ],
+    }).select("+password +phone");
 
-    if (!owner) {
+    if (!isExist) {
       return res.status(404).json({
         success: false,
         message: "Owner not found.",
       });
     }
-    const isMatch = await bcrypt.compare(password, owner.password);
+    if (!isExist.isPhoneVerified) {
+      const verification = await client.verify.v2
+        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+        .verifications.create({
+          to: isExist.phone, // e.g. +916266976479
+          channel: "sms",
+        });
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent successfully.",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, isExist.password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials.",
       });
     }
+    if (!isExist.isPhoneVerified) {
+      const verification = await client.verify.v2
+        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+        .verifications.create({
+          to: isExist.phone, // e.g. +916266976479
+          channel: "sms",
+        });
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent successfully.",
+      });
+    }
     const token = jwt.sign(
       {
-        id: owner._id,
+        owner: isExist.select("-password")
       },
       process.env.SECRET_KEY,
       {
@@ -73,20 +103,69 @@ export const ownerSignIn = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `Welcome ${owner.fullName}`,
-      owner: {
-        id: owner._id,
-        fullName: owner.fullName,
-        email: owner.email,
-        role: owner.role,
-        profileImage: owner.profileImage,
-        isEmailVerified: owner.isEmailVerified,
-        isPhoneVerified: owner.isPhoneVerified,
-        status: owner.status,
-      },
+      owner: isExist.select("-password")
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
+      message: error.message,
+    });
+  }
+};
+//=====Verify phone using Otp=====
+export const verifyPhone = async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const { otp } = req.body;
+    const isExist = await Owner.findOne({ phone });
+    if (!isExist) {
+      return res.status(404).json({
+        message: "Invailid Phone Number"
+      })
+    };
+    const verification = await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verificationChecks.create({
+        to: phone,
+        code: otp,
+      });
+
+    isExist.isPhoneVerified = true;
+    await isExist.save();
+    return res.status(200).json({
+      success: true,
+      message: ` Successfully logged in ${isExist.fullName}`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+//=====Send Otp using phone for verify user =====
+export const reSendOtp = async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const user = await Owner.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        message: "Invailid Phone Number"
+      })
+    };
+    // Generate OTP
+    const verification = await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({
+        to: phone, // e.g. +916266976479
+        channel: "sms",
+      });
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -277,6 +356,73 @@ export const emailVerification = async (req, res) => {
     });
   }
 };
+// =====Send Otp using phone for reset password =====
+export const sendOtpPhone = async (req, res) => {
+    try {
+        const { phone } = req.body;
+
+        const phoneNumber = phone.startsWith("+") ? phone : `+91${phone}`;
+
+        const user = await Owner.findOne({ phone });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Invalid phone number",
+            });
+        }
+
+        await client.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+            .verifications.create({
+                to: phoneNumber,
+                channel: "sms",
+            });
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully.",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+// =====Verify Otp using phone for reset password =====
+export const resetPasswordUsingPhone = async (req, res) => {
+    try {
+        const { phone } = req.params;
+        const { otp, password } = req.body;
+        const user = await Owner.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({
+                message: "Invailid Phone Number"
+            })
+        };
+         const verification = await client.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+            .verificationChecks.create({
+                to: phone,
+                code: otp,
+            });
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        // Update password
+        user.password = hashedPassword;
+       await user.save()
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
 // ===== Me Route =====
 export const meRoute = async (req, res) => {
   try {

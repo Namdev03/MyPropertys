@@ -10,7 +10,7 @@ export const userAuth = async (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        req.id = decoded.id;
+        req.id = decoded.payload.id;
         next();
     } catch (error) {
         return res.status(401).json({
