@@ -1,2 +1,7 @@
+# Dependencies
+node_modules/
+
+# Environment files
 .env
-node_module.js
+Backend/.env
+Frontend/.env
