@@ -10,28 +10,36 @@ import HomePage from './pages/HomePage.jsx'
 import Layout from './components/NavBar.jsx'
 import { useDispatch } from 'react-redux'
 import { meAsync } from './Redux/authSlice.js'
+import Protected from './Router/Protected.jsx'
 //=====App Function =====
 function App() {
-const dispatch = useDispatch()
-useEffect(()=>{
-dispatch(meAsync())
-})
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch(meAsync())
+  })
   return (
     <>
       <Routes>
-        {/* Routes with Navbar */}
-        <Route element={<Layout/>}>
-          <Route path={pagePath.HOME} element={<HomePage />} />
-          {/* Add other pages that should show Navbar */}
-          {/* <Route path={pagePath.PROPERTIES} element={<Properties />} /> */}
-          {/* <Route path={pagePath.CONTACT} element={<Contact />} /> */}
+
+        {/* Protected Routes */}
+        <Route element={<Protected />}>
+          <Route element={<Layout />}>
+            <Route path={pagePath.HOME} element={<HomePage />} />
+
+            {/* More protected pages */}
+            {/* <Route path={pagePath.PROPERTIES} element={<Properties />} /> */}
+            {/* <Route path={pagePath.CONTACT} element={<Contact />} /> */}
+            {/* <Route path="/profile" element={<Profile />} /> */}
+          </Route>
         </Route>
-        {/* Routes without Navbar */}
+
+        {/* Public Routes */}
         <Route path={pagePath.SIGNUP} element={<Signup />} />
         <Route path={pagePath.SIGNIN} element={<Signin />} />
         <Route path="/verify/:phone" element={<Verify />} />
         <Route path={pagePath.FORGOTPASSWORD} element={<ForgotPassword />} />
         <Route path="/resetpassword/:phone" element={<ResetPassword />} />
+
       </Routes>
     </>
   )

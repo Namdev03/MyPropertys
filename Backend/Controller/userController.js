@@ -5,10 +5,10 @@ import { sendEmail } from "../Utils/sendEmail.js";
 import client from "../Config/twilio.js";
 //===== User Sign Up =====
 const cookieOption = {
-  httpOnly: true,
-  secure: false,      // Development uses HTTP
-  sameSite: "lax",
-  maxAge: 24 * 60 * 60 * 1000, // 1 day
+    httpOnly: true,
+    secure: false,      // Development uses HTTP
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
 };
 export const userSignUp = async (req, res) => {
     try {
@@ -18,6 +18,7 @@ export const userSignUp = async (req, res) => {
         });
         if (isExist) {
             return res.status(409).json({
+                success: false,
                 message: "User already exists! Please login.",
             });
         }
@@ -31,11 +32,13 @@ export const userSignUp = async (req, res) => {
             phone: formattedPhone,
         });
         return res.status(201).json({
+            success: true,
             message: "Registered Successfully",
             user
         });
     } catch (error) {
         return res.status(500).json({
+            success: false,
             message: error.message,
         });
     }
@@ -63,7 +66,7 @@ export const userSignIn = async (req, res) => {
                 message: "Invalid credentials.",
             });
         }
-      
+
         // Create JWT after successful verification
         const payload = {
             id: isExist._id,
@@ -76,14 +79,14 @@ export const userSignIn = async (req, res) => {
             isPhoneVerified: isExist.isPhoneVerified,
             status: isExist.status,
         };
-        
+
         const token = jwt.sign(payload, process.env.SECRET_KEY, {
             expiresIn: "1d",
         });
         console.log(token);
-        
+
         res.cookie("token", token, cookieOption);
-          // If phone is not verified, send OTP first
+        // If phone is not verified, send OTP first
         if (!isExist.isPhoneVerified) {
             const verification = await client.verify.v2
                 .services(process.env.TWILIO_VERIFY_SERVICE_SID)
@@ -117,6 +120,7 @@ export const verifyPhone = async (req, res) => {
         const isExist = await User.findOne({ phone });
         if (!isExist) {
             return res.status(404).json({
+                success: false,
                 message: "Invailid Phone Number"
             })
         };
@@ -148,6 +152,7 @@ export const reSendOtp = async (req, res) => {
         const user = await User.findOne({ phone });
         if (!user) {
             return res.status(404).json({
+                success: false,
                 message: "Invailid Phone Number"
             })
         };
@@ -164,6 +169,7 @@ export const reSendOtp = async (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({
+            success: false,
             message: error.message,
         });
     }
@@ -173,10 +179,12 @@ export const Logout = async (req, res) => {
     try {
         res.clearCookie("token", cookieOption);
         return res.status(200).json({
-            message: "successfullt logout"
+            success: true,
+            message: "successfully logout"
         })
     } catch (error) {
         return res.status(500).json({
+            success: false,
             message: error.message
         });
     }
@@ -188,15 +196,18 @@ export const userProfile = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
+                success: false,
                 message: "user not found"
             })
         };
         return res.status(200).json({
-            message: "user found successfully",
+            success: true,
+            message: "fetch successfully",
             user
         })
     } catch (error) {
         return res.status(500).json({
+            success :false,
             message: error.message
         });
     }
@@ -208,6 +219,7 @@ export const sendOtp = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({
+                success :false,
                 message: "Invailid Email"
             })
         };
@@ -339,6 +351,7 @@ export const resetPasswordUsingPhone = async (req, res) => {
         const user = await User.findOne({ phone });
         if (!user) {
             return res.status(404).json({
+                success :false,
                 message: "Invailid Phone Number"
             })
         };
@@ -368,7 +381,6 @@ export const resetPasswordUsingPhone = async (req, res) => {
 export const meRoute = async (req, res) => {
     try {
         const userId = req.id;
-
         if (!userId) {
             return res.status(401).json({
                 success: false,

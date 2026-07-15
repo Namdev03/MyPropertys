@@ -1,208 +1,390 @@
-
-import React, { useState } from "react";
-import { Link } from "react-router";
+import { useState, useEffect, useRef } from "react";
+import { Link, useLocation } from "react-router";
+import { useSelector } from "react-redux";
 import {
-  Menu,
-  X,
   Search,
+  X,
+  Menu,
+  ChevronDown,
+  LayoutDashboard,
+  Building2,
+  Heart,
+  LogOut,
 } from "lucide-react";
 
- export function Navbar() {
-  // Change this value from Redux/Auth Context
-  const isLoggedIn = false;
+export function Navbar() {
+  const list = [
+    { id: 1, name: "Home", path: "/" },
+    { id: 2, name: "Properties", path: "/properties" },
+    { id: 3, name: "Contact", path: "/contact" },
+    { id: 1, name: "Home", path: "/" },
+    { id: 2, name: "Properties", path: "/properties" },
+    { id: 3, name: "Contact", path: "/contact" },
+  ];
 
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path;
+
+  // Swap for your real auth state — kept as-is from your original.
+  const { isLoggedIn } = useSelector((store) => store.auth);
+
+  const [isOpen, setIsOpen] = useState(false); // mobile drawer
   const [search, setSearch] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
   const profileImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
+  // Elevate the navbar once the page scrolls — subtle, not decorative.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close profile dropdown on outside click.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleSearch = () => {
     console.log(search);
-    // Search Logic Here
+    // Search logic here — e.g. navigate(`/properties?q=${encodeURIComponent(search)}`)
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white shadow-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
+    <>
+      <nav
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+          scrolled
+            ? "border-[#E7E4DC] bg-[#FEFDFB]/90 shadow-md backdrop-blur-md"
+            : "border-transparent bg-[#FEFDFB]"
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="shrink-0 font-serif text-2xl font-bold tracking-tight text-[#14213D] sm:text-[1.75rem]"
+          >
+            MyProperty
+          </Link>
 
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-3xl font-extrabold text-indigo-600 tracking-wide"
-        >
-          MyProperty
-        </Link>
-
-        {/* Desktop Menu */}
-        <ul className="hidden items-center gap-8 font-medium text-gray-700 lg:flex">
-          <li>
-            <Link
-              to="/"
-              className="transition hover:text-indigo-600"
-            >
-              Home
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              to="/properties"
-              className="transition hover:text-indigo-600"
-            >
-              Properties
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              to="/contact"
-              className="transition hover:text-indigo-600"
-            >
-              Contact
-            </Link>
-          </li>
-        </ul>
-
-        {/* Search */}
-        <div className="hidden lg:flex items-center gap-2">
-
-          <div className="relative">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search properties..."
-              className="w-72 rounded-full border border-gray-300 py-2 pl-4 pr-12 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-            />
-
-            <button
-              onClick={handleSearch}
-              className="absolute right-1 top-1 rounded-full bg-indigo-600 p-2 text-white hover:bg-indigo-700"
-            >
-              <Search size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Right Side */}
-        <div className="hidden items-center gap-4 lg:flex">
-          {!isLoggedIn ? (
-            <>
-              <Link
-                to="/signin"
-                className="rounded-lg border border-indigo-600 px-5 py-2 font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white shadow-md transition hover:bg-indigo-700"
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            <img
-              src={profileImage}
-              alt="Profile"
-              className="h-11 w-11 cursor-pointer rounded-full border-2 border-indigo-600 object-cover"
-            />
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden"
-        >
-          {isOpen ? <X size={30} /> : <Menu size={30} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="space-y-5 border-t bg-white px-5 py-6 shadow-xl lg:hidden">
-
-          {/* Search */}
-          <div className="flex items-center gap-2">
-
-            <input
-              type="text"
-              placeholder="Search properties..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-            />
-
-            <button
-              onClick={handleSearch}
-              className="rounded-lg bg-indigo-600 p-3 text-white hover:bg-indigo-700"
-            >
-              <Search size={20} />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <ul className="space-y-4 font-medium text-gray-700">
-
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-
-            <li>
-              <Link to="/properties">Properties</Link>
-            </li>
-
-            <li>
-              <Link to="/contact">Contact</Link>
-            </li>
-
+          {/* Desktop Menu */}
+          <ul className="hidden items-center gap-9 lg:flex">
+            {list.map((item) => (
+              <li key={item.id}>
+                <Link
+                  to={item.path}
+                  className={`group relative py-1 text-[15px] font-medium transition-colors duration-200 ${
+                    isActive(item.path)
+                      ? "text-[#14213D]"
+                      : "text-gray-500 hover:text-[#14213D]"
+                  }`}
+                >
+                  {item.name}
+                  <span
+                    className={`absolute -bottom-0.5 left-0 h-[2px] rounded-full bg-[#2F6844] transition-all duration-300 ${
+                      isActive(item.path) ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </li>
+            ))}
           </ul>
 
-          {/* Auth Buttons */}
-
-          {!isLoggedIn ? (
-            <div className="flex gap-3">
-
-              <Link
-                to="/login"
-                className="flex-1 rounded-lg border border-indigo-600 py-3 text-center font-semibold text-indigo-600"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                className="flex-1 rounded-lg bg-indigo-600 py-3 text-center font-semibold text-white"
-              >
-                Sign Up
-              </Link>
-
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="h-12 w-12 rounded-full border-2 border-indigo-600"
+          {/* Search - Desktop */}
+          <div className="hidden lg:flex lg:flex-1 lg:max-w-xs xl:max-w-sm">
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="Search by city, area..."
+                className="w-full rounded-full border border-[#E7E4DC] bg-white py-2.5 pl-4 pr-11 text-sm text-[#14213D] placeholder:text-gray-400 outline-none transition focus:border-[#2F6844] focus:ring-2 focus:ring-[#2F6844]/15"
               />
+              <button
+                onClick={handleSearch}
+                aria-label="Search"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-[#14213D] p-2 text-white transition hover:bg-[#2F6844]"
+              >
+                <Search size={16} />
+              </button>
+            </div>
+          </div>
 
-              <div>
-                <h2 className="font-semibold">Welcome</h2>
-                <p className="text-sm text-gray-500">
-                  View Profile
-                </p>
+          {/* Right Side - Desktop */}
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            {!isLoggedIn ? (
+              <>
+                <Link
+                  to="/signin"
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-[#14213D] transition hover:bg-[#14213D]/5"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="rounded-full bg-[#14213D] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2F6844]"
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen((o) => !o)}
+                  className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-[#14213D]/5"
+                >
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="h-9 w-9 rounded-full border-2 border-[#2F6844] object-cover"
+                  />
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-500 transition-transform duration-200 ${
+                      profileOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown */}
+                <div
+                  className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-[#E7E4DC] bg-white py-2 shadow-lg transition-all duration-150 ${
+                    profileOpen
+                      ? "translate-y-0 opacity-100"
+                      : "pointer-events-none -translate-y-1 opacity-0"
+                  }`}
+                >
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
+                  >
+                    <LayoutDashboard size={16} className="text-[#2F6844]" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/my-properties"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
+                  >
+                    <Building2 size={16} className="text-[#2F6844]" />
+                    My Properties
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
+                  >
+                    <Heart size={16} className="text-[#2F6844]" />
+                    Wishlist
+                  </Link>
+                  <div className="my-1 border-t border-[#E7E4DC]" />
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      // call your logout handler / dispatch here
+                    }}
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(true)}
+            aria-label="Open menu"
+            className="text-[#14213D] lg:hidden"
+          >
+            <Menu size={26} />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer + Backdrop */}
+      <div
+        className={`fixed inset-0 z-[60] transition-opacity duration-300 lg:hidden ${
+          isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          onClick={() => setIsOpen(false)}
+          className="absolute inset-0 bg-black/40"
+        />
+
+        {/* Drawer panel */}
+        <div
+          className={`absolute right-0 top-0 h-full w-[82%] max-w-sm bg-[#FEFDFB] shadow-2xl transition-transform duration-300 ease-out ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-[#E7E4DC] px-5 py-4">
+            <span className="font-serif text-xl font-bold text-[#14213D]">
+              MyProperty
+            </span>
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="Close menu"
+              className="text-[#14213D]"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="flex h-[calc(100%-64px)] flex-col justify-between overflow-y-auto px-5 py-6">
+            <div className="space-y-6">
+              {/* Search */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by city, area..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className="flex-1 rounded-lg border border-[#E7E4DC] px-4 py-3 text-sm outline-none focus:border-[#2F6844]"
+                />
+                <button
+                  onClick={handleSearch}
+                  aria-label="Search"
+                  className="rounded-lg bg-[#14213D] p-3 text-white transition hover:bg-[#2F6844]"
+                >
+                  <Search size={20} />
+                </button>
               </div>
 
-            </div>
-          )}
+              {/* Navigation */}
+              <ul className="space-y-1 font-medium">
+                {list.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`block rounded-lg px-3 py-3 transition ${
+                        isActive(item.path)
+                          ? "bg-[#2F6844]/10 text-[#2F6844]"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
 
+              {isLoggedIn && (
+                <ul className="space-y-1 border-t border-[#E7E4DC] pt-4 font-medium">
+                  <li>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
+                    >
+                      <LayoutDashboard size={18} className="text-[#2F6844]" />
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/my-properties"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
+                    >
+                      <Building2 size={18} className="text-[#2F6844]" />
+                      My Properties
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/wishlist"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
+                    >
+                      <Heart size={18} className="text-[#2F6844]" />
+                      Wishlist
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </div>
+
+            {/* Bottom: auth area */}
+            <div className="pt-6">
+              {!isLoggedIn ? (
+                <div className="flex gap-3">
+                  <Link
+                    to="/signin"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 rounded-lg border border-[#14213D] py-3 text-center font-semibold text-[#14213D]"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 rounded-lg bg-[#14213D] py-3 text-center font-semibold text-white"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between rounded-lg border border-[#E7E4DC] p-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-[#14213D]">Welcome back</p>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="text-xs text-[#2F6844] hover:underline"
+                      >
+                        View profile
+                      </Link>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Logout"
+                    className="rounded-full p-2 text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      )}
-    </nav>
+      </div>
+    </>
   );
 }
 
@@ -213,11 +395,11 @@ import Footer from "./Footer.jsx";
 function Layout() {
   return (
     <>
-      <Navbar/>
+      <Navbar />
       <main className="min-h-screen">
         <Outlet />
       </main>
-      <Footer/>
+      <Footer />
     </>
   );
 }

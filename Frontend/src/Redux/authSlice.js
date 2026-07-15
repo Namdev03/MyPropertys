@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { meApi, signInApi, signUpApi } from "../services/authApi.js";
 const initialState = {
-  isLoadding: true,
+  isLoading: true,
   isLoggedIn: false,
   userData: null,
 }
@@ -39,34 +39,34 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(signUpAsync.pending, (state) => {
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false
     }).addCase(signUpAsync.fulfilled, (state, action) => {
-      state.isLoadding = false;
+      state.isLoading = false;
       state.isLoggedIn = true;
       state.userData = action.payload;
     }).addCase(signUpAsync.rejected, (state) => {
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false
     }).addCase(signInAsync.pending, (state) => {
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false
     }).addCase(signInAsync.fulfilled, (state,action) => {
-      state.isLoadding = false;
+      state.isLoading = false;
       state.isLoggedIn = true;
       state.userData = action.payload;
     }).addCase(signInAsync.rejected, (state) => {
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false
     }).addCase(meAsync.pending,(state)=>{
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false;
     }).addCase(meAsync.fulfilled,(state,action)=>{
-      state.isLoadding = false;
-      state.isLoggedIn = true;
+      state.isLoading = false;
+      state.isLoggedIn = action.payload.success;
       state.userData = action.payload;
     }).addCase(meAsync.rejected,(state)=>{
-      state.isLoadding = true;
+      state.isLoading = true;
       state.isLoggedIn = false;
     })
   }
