@@ -3,4 +3,5 @@
     SIGNUP:"/user/signup",
      //=====Sign In===
     SIGNIN:"/user/signin",
+    ME:"/user/me"
 }

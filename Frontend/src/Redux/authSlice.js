@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { signInApi, signUpApi } from "../services/authApi.js";
+import { meApi, signInApi, signUpApi } from "../services/authApi.js";
 const initialState = {
   isLoadding: true,
   isLoggedIn: false,
   userData: null,
 }
+//===== SignUp api======
 export const signUpAsync = createAsyncThunk("/user/signup", async (payload, { rejectWithValue }) => {
   try {
     const response = await signUpApi(payload);
@@ -13,6 +14,7 @@ export const signUpAsync = createAsyncThunk("/user/signup", async (payload, { re
     return rejectWithValue(error.response);
   }
 });
+//===== SignIn api======
 export const signInAsync = createAsyncThunk('/user/signin', async (payload, { rejectWithValue }) => {
   try {
     const response = await signInApi(payload);
@@ -20,7 +22,17 @@ export const signInAsync = createAsyncThunk('/user/signin', async (payload, { re
   } catch (error) {
     return rejectWithValue(error.response)
   }
-})
+});
+//===== Me route api======
+export const meAsync = createAsyncThunk('/user/me', async (_, { rejectWithValue }) => {
+  try {
+    const response = await meApi();
+    return response
+  } catch (error) {
+    return rejectWithValue(error.response)
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -46,6 +58,16 @@ const authSlice = createSlice({
     }).addCase(signInAsync.rejected, (state) => {
       state.isLoadding = true;
       state.isLoggedIn = false
+    }).addCase(meAsync.pending,(state)=>{
+      state.isLoadding = true;
+      state.isLoggedIn = false;
+    }).addCase(meAsync.fulfilled,(state,action)=>{
+      state.isLoadding = false;
+      state.isLoggedIn = true;
+      state.userData = action.payload;
+    }).addCase(meAsync.rejected,(state)=>{
+      state.isLoadding = true;
+      state.isLoggedIn = false;
     })
   }
 })

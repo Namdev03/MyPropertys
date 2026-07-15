@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router'
 import { pagePath } from './Router/pagePaths.js'
 import Signup from './pages/signup.jsx'
@@ -8,7 +8,14 @@ import ForgotPassword from './pages/ForgatePassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import HomePage from './pages/HomePage.jsx'
 import Layout from './components/NavBar.jsx'
+import { useDispatch } from 'react-redux'
+import { meAsync } from './Redux/authSlice.js'
+//=====App Function =====
 function App() {
+const dispatch = useDispatch()
+useEffect(()=>{
+dispatch(meAsync())
+})
   return (
     <>
       <Routes>
@@ -29,6 +36,5 @@ function App() {
     </>
   )
 }
-
 
 export default App

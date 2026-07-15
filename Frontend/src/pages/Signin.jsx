@@ -7,6 +7,7 @@ import { signInAsync } from "../Redux/authSlice";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+
 function Signin() {
   const {
     register,
@@ -14,16 +15,30 @@ function Signin() {
     formState: { errors },
   } = useForm();
   const dispatch = useDispatch()
+
   const [showPassword, setShowPassword] = useState(false);
+
   const nevigate = useNavigate()
+
   const onSubmit = async (payload) => {
-    const response = await dispatch(signInAsync(payload))
-    toast.success(response.payload.message)
+    const data = { ...payload };
+
+    // If user entered a phone number, add +91
+    if (/^[6-9]\d{9}$/.test(data.emailOrPhone)) {
+      data.emailOrPhone = `+91${data.emailOrPhone}`;
+    }
+    const response = await dispatch(signInAsync(data)).unwrap();
+    if (!response.success) {
+      toast.warning(response.message)
+    }
+    else {
+    toast.success(response.message)
+    }
     console.log(response);
-    const phone = response.payload.isExist.phone;
-    const isVerified = response.payload.isExist.isPhoneVerified
+    const phone = response.payload.phone;
+    const isVerified = response.payload.isPhoneVerified
     if (!isVerified) {
-     nevigate(`/verify/${phone}`)
+      nevigate(`/verify/${phone}`)
     }
   };
   return (
@@ -53,7 +68,7 @@ function Signin() {
 
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
-              Email or Phone
+              Email or Phone with
             </label>
 
             <input

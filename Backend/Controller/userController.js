@@ -5,11 +5,11 @@ import { sendEmail } from "../Utils/sendEmail.js";
 import client from "../Config/twilio.js";
 //===== User Sign Up =====
 const cookieOption = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "PRODUCTION", // false in dev (since dev is http)
-    sameSite: process.env.NODE_ENV === "PRODUCTION" ? "strict" : "lax",
-    maxAge: 24 * 60 * 60 * 1000,
-}
+  httpOnly: true,
+  secure: false,      // Development uses HTTP
+  sameSite: "lax",
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+};
 export const userSignUp = async (req, res) => {
     try {
         const { fullName, phone, email, password } = req.body;
@@ -49,7 +49,7 @@ export const userSignIn = async (req, res) => {
                 { email: emailOrPhone },
                 { phone: emailOrPhone },
             ],
-        }).select("+password +phone");
+        }).select("+password");
         if (!isExist) {
             return res.status(404).json({
                 success: false,
@@ -63,7 +63,27 @@ export const userSignIn = async (req, res) => {
                 message: "Invalid credentials.",
             });
         }
-        // If phone is not verified, send OTP first
+      
+        // Create JWT after successful verification
+        const payload = {
+            id: isExist._id,
+            phone: isExist.phone,
+            fullName: isExist.fullName,
+            email: isExist.email,
+            role: isExist.role,
+            profileImage: isExist.profileImage,
+            isEmailVerified: isExist.isEmailVerified,
+            isPhoneVerified: isExist.isPhoneVerified,
+            status: isExist.status,
+        };
+        
+        const token = jwt.sign(payload, process.env.SECRET_KEY, {
+            expiresIn: "1d",
+        });
+        console.log(token);
+        
+        res.cookie("token", token, cookieOption);
+          // If phone is not verified, send OTP first
         if (!isExist.isPhoneVerified) {
             const verification = await client.verify.v2
                 .services(process.env.TWILIO_VERIFY_SERVICE_SID)
@@ -77,25 +97,6 @@ export const userSignIn = async (req, res) => {
                 isExist
             });
         }
-        // Create JWT after successful verification
-        const payload = {
-            id: isExist._id,
-            phone: isExist.phone,
-            fullName: isExist.fullName,
-            email: isExist.email,
-            role: isExist.role,
-            profileImage: isExist.profileImage,
-            isEmailVerified: isExist.isEmailVerified,
-            isPhoneVerified: isExist.isPhoneVerified,
-            status: isExist.status,
-        };
-
-        const token = jwt.sign(payload, process.env.SECRET_KEY, {
-            expiresIn: "1d",
-        });
-
-        res.cookie("token", token, cookieOption);
-
         return res.status(200).json({
             success: true,
             message: `Successfully logged in ${isExist.fullName}`,
@@ -297,7 +298,7 @@ export const sendOtpPhone = async (req, res) => {
             ? phone
             : `+91${phone}`;
         // Find user
-        const user = await User.findOne({ phone:formattedPhone });
+        const user = await User.findOne({ phone: formattedPhone });
 
         if (!user) {
             return res.status(404).json({
@@ -374,16 +375,13 @@ export const meRoute = async (req, res) => {
                 message: "User not authenticated",
             });
         }
-
         const user = await User.findById(userId).select("-password");
-
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found",
             });
         }
-
         return res.status(200).json({
             success: true,
             message: "User authenticated",

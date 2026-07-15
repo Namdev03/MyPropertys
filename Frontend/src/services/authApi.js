@@ -17,3 +17,12 @@ export const signInApi =async (payload) => {
         return error.response.data;
     }
 }
+//===== Me Api =====
+export const meApi = async () => {
+    try {
+        const response = await axiosInstance.get(authApiEndPoint.ME)
+        return response.data;
+    } catch (error) {
+        return error.response.data;
+    }
+}

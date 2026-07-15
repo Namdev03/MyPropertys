@@ -208,6 +208,7 @@ import {
 
 
 import { Outlet } from "react-router";
+import Footer from "./Footer.jsx";
 
 function Layout() {
   return (
@@ -216,6 +217,7 @@ function Layout() {
       <main className="min-h-screen">
         <Outlet />
       </main>
+      <Footer/>
     </>
   );
 }
