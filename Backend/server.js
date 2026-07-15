@@ -6,13 +6,16 @@ import cookieParser from "cookie-parser";
 import { ownerRouter } from "./Router/ownerRouter.js";
 import { propertyRouter } from "./Router/propertyRouter.js";
 import { feedBackRouter } from "./Router/feedBackRouter.js";
-
+import cors from "cors"
 const server = express()
 //=====Middleware=====
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 server.use(cookieParser())
-
+server.use(cors({
+    origin:"http://localhost:5173",
+    credentials:true
+}))
 // Port from .env
 const port = process.env.PORT || 5000;
 

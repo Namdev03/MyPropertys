@@ -74,6 +74,7 @@ export const userSignIn = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully.",
+                isExist
             });
         }
         // Create JWT after successful verification
@@ -129,7 +130,8 @@ export const verifyPhone = async (req, res) => {
         await isExist.save();
         return res.status(200).json({
             success: true,
-            message: ` Successfully logged in ${isExist.fullName}`
+            message: ` Successfully logged in ${isExist.fullName}`,
+            isExist
         });
     } catch (error) {
         return res.status(500).json({
@@ -150,11 +152,11 @@ export const reSendOtp = async (req, res) => {
         };
         // Generate OTP
         const verification = await client.verify.v2
-                .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-                .verifications.create({
-                    to: phone, // e.g. +916266976479
-                    channel: "sms",
-                });
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+            .verifications.create({
+                to: phone, // e.g. +916266976479
+                channel: "sms",
+            });
         return res.status(200).json({
             success: true,
             message: "OTP sent successfully",
@@ -284,29 +286,44 @@ export const sendOtpPhone = async (req, res) => {
     try {
         const { phone } = req.body;
 
-        const phoneNumber = phone.startsWith("+") ? phone : `+91${phone}`;
-
-        const user = await User.findOne({ phone });
+        // Validate input
+        if (!phone) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required.",
+            });
+        }
+        const formattedPhone = phone.startsWith("+")
+            ? phone
+            : `+91${phone}`;
+        // Find user
+        const user = await User.findOne({ phone:formattedPhone });
 
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: "Invalid phone number",
+                message: "Invalid phone number.",
             });
         }
+        // Format phone number for Twilio
 
+
+        // Send OTP
         await client.verify.v2
             .services(process.env.TWILIO_VERIFY_SERVICE_SID)
             .verifications.create({
-                to: phoneNumber,
+                to: formattedPhone,
                 channel: "sms",
             });
 
         return res.status(200).json({
             success: true,
             message: "OTP sent successfully.",
+            formattedPhone
         });
     } catch (error) {
+        console.error("Send OTP Error:", error);
+
         return res.status(500).json({
             success: false,
             message: error.message,
@@ -324,7 +341,7 @@ export const resetPasswordUsingPhone = async (req, res) => {
                 message: "Invailid Phone Number"
             })
         };
-         const verification = await client.verify.v2
+        const verification = await client.verify.v2
             .services(process.env.TWILIO_VERIFY_SERVICE_SID)
             .verificationChecks.create({
                 to: phone,
