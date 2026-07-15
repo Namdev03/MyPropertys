@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router";
-import { useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Search,
   X,
@@ -17,34 +17,25 @@ export function Navbar() {
     { id: 1, name: "Home", path: "/" },
     { id: 2, name: "Properties", path: "/properties" },
     { id: 3, name: "Contact", path: "/contact" },
-    { id: 1, name: "Home", path: "/" },
-    { id: 2, name: "Properties", path: "/properties" },
-    { id: 3, name: "Contact", path: "/contact" },
   ];
-
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
-
   // Swap for your real auth state — kept as-is from your original.
-  const { isLoggedIn } = useSelector((store) => store.auth);
-
+  const { isLoggedIn, userData } = useSelector((store) => store.auth);
   const [isOpen, setIsOpen] = useState(false); // mobile drawer
   const [search, setSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
-
-  const profileImage =
-    "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
-
+  const dispatch = useDispatch()
   // Elevate the navbar once the page scrolls — subtle, not decorative.
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
   // Close profile dropdown on outside click.
   useEffect(() => {
     const onClick = (e) => {
@@ -68,15 +59,17 @@ export function Navbar() {
     console.log(search);
     // Search logic here — e.g. navigate(`/properties?q=${encodeURIComponent(search)}`)
   };
-
+  const navigate = useNavigate()
+  if (!isLoggedIn) {
+    navigate('/signin')
+  }
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-          scrolled
-            ? "border-[#E7E4DC] bg-[#FEFDFB]/90 shadow-md backdrop-blur-md"
-            : "border-transparent bg-[#FEFDFB]"
-        }`}
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${scrolled
+          ? "border-[#E7E4DC] bg-[#FEFDFB]/90 shadow-md backdrop-blur-md"
+          : "border-transparent bg-[#FEFDFB]"
+          }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
           {/* Logo */}
@@ -87,30 +80,28 @@ export function Navbar() {
             MyProperty
           </Link>
 
-          {/* Desktop Menu */}
+          {/*====== Desktop Menu====== */}
           <ul className="hidden items-center gap-9 lg:flex">
             {list.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.path}
-                  className={`group relative py-1 text-[15px] font-medium transition-colors duration-200 ${
-                    isActive(item.path)
-                      ? "text-[#14213D]"
-                      : "text-gray-500 hover:text-[#14213D]"
-                  }`}
+                  className={`group relative py-1 text-[15px] font-medium transition-colors duration-200 ${isActive(item.path)
+                    ? "text-[#14213D]"
+                    : "text-gray-500 hover:text-[#14213D]"
+                    }`}
                 >
                   {item.name}
                   <span
-                    className={`absolute -bottom-0.5 left-0 h-[2px] rounded-full bg-[#2F6844] transition-all duration-300 ${
-                      isActive(item.path) ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
+                    className={`absolute -bottom-0.5 left-0 h-[2px] rounded-full bg-[#2F6844] transition-all duration-300 ${isActive(item.path) ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
                   />
                 </Link>
               </li>
             ))}
           </ul>
 
-          {/* Search - Desktop */}
+          {/* ======Search - Desktop====== */}
           <div className="hidden lg:flex lg:flex-1 lg:max-w-xs xl:max-w-sm">
             <div className="relative w-full">
               <input
@@ -131,7 +122,7 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Right Side - Desktop */}
+          {/* ======Right Side - Desktop====== */}
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
             {!isLoggedIn ? (
               <>
@@ -155,34 +146,23 @@ export function Navbar() {
                   className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-[#14213D]/5"
                 >
                   <img
-                    src={profileImage}
+                    // src={userData.user.profileImage || userData.payload.profileImage}
                     alt="Profile"
                     className="h-9 w-9 rounded-full border-2 border-[#2F6844] object-cover"
                   />
                   <ChevronDown
                     size={16}
-                    className={`text-gray-500 transition-transform duration-200 ${
-                      profileOpen ? "rotate-180" : ""
-                    }`}
+                    className={`text-gray-500 transition-transform duration-200 ${profileOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
-
                 {/* Dropdown */}
                 <div
-                  className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-[#E7E4DC] bg-white py-2 shadow-lg transition-all duration-150 ${
-                    profileOpen
-                      ? "translate-y-0 opacity-100"
-                      : "pointer-events-none -translate-y-1 opacity-0"
-                  }`}
+                  className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-[#E7E4DC] bg-white py-2 shadow-lg transition-all duration-150 ${profileOpen
+                    ? "translate-y-0 opacity-100"
+                    : "pointer-events-none -translate-y-1 opacity-0"
+                    }`}
                 >
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
-                  >
-                    <LayoutDashboard size={16} className="text-[#2F6844]" />
-                    Dashboard
-                  </Link>
                   <Link
                     to="/my-properties"
                     onClick={() => setProfileOpen(false)}
@@ -199,10 +179,10 @@ export function Navbar() {
                     <Heart size={16} className="text-[#2F6844]" />
                     Wishlist
                   </Link>
-                  <div className="my-1 border-t border-[#E7E4DC]" />
                   <button
                     onClick={() => {
-                      setProfileOpen(false);
+                      dispatch(logoutAsync())
+                      // setProfileOpen(false);
                       // call your logout handler / dispatch here
                     }}
                     className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
@@ -210,12 +190,13 @@ export function Navbar() {
                     <LogOut size={16} />
                     Logout
                   </button>
+                  <div className="my-1 border-t border-[#E7E4DC]" />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* ======Mobile Menu Button======*/}
           <button
             onClick={() => setIsOpen(true)}
             aria-label="Open menu"
@@ -226,11 +207,10 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Drawer + Backdrop */}
+      {/* ======Mobile Drawer + Backdrop====== */}
       <div
-        className={`fixed inset-0 z-[60] transition-opacity duration-300 lg:hidden ${
-          isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        className={`fixed inset-0 z-[60] transition-opacity duration-300 lg:hidden ${isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          }`}
       >
         {/* Backdrop */}
         <div
@@ -240,14 +220,29 @@ export function Navbar() {
 
         {/* Drawer panel */}
         <div
-          className={`absolute right-0 top-0 h-full w-[82%] max-w-sm bg-[#FEFDFB] shadow-2xl transition-transform duration-300 ease-out ${
-            isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`absolute right-0 top-0 h-full w-[82%] max-w-sm bg-[#FEFDFB] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           <div className="flex items-center justify-between border-b border-[#E7E4DC] px-5 py-4">
-            <span className="font-serif text-xl font-bold text-[#14213D]">
-              MyProperty
-            </span>
+            <div className="flex items-center justify-between rounded-lg  border-[#E7E4DC] p-3">
+              <div className="flex items-center gap-3">
+                <img
+                  // src={userData.user.profileImage}
+                  alt="Profile"
+                  className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-[#14213D]">Welcome back</p>
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="text-xs text-[#2F6844] hover:underline"
+                  >
+                    View profile
+                  </Link>
+                </div>
+              </div>
+            </div>
             <button
               onClick={() => setIsOpen(false)}
               aria-label="Close menu"
@@ -259,7 +254,7 @@ export function Navbar() {
 
           <div className="flex h-[calc(100%-64px)] flex-col justify-between overflow-y-auto px-5 py-6">
             <div className="space-y-6">
-              {/* Search */}
+              {/* ======Search====== */}
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -278,64 +273,95 @@ export function Navbar() {
                 </button>
               </div>
 
-              {/* Navigation */}
+              {/* ======Navigation====== */}
               <ul className="space-y-1 font-medium">
                 {list.map((item) => (
                   <li key={item.id}>
                     <Link
                       to={item.path}
                       onClick={() => setIsOpen(false)}
-                      className={`block rounded-lg px-3 py-3 transition ${
-                        isActive(item.path)
-                          ? "bg-[#2F6844]/10 text-[#2F6844]"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`block rounded-lg px-3 py-3 transition ${isActive(item.path)
+                        ? "bg-[#2F6844]/10 text-[#2F6844]"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                     >
                       {item.name}
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <Link
+                    to="/my-properties"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
+                  >
+                    <Building2 size={16} className="text-[#2F6844]" />
+                    My Properties
+                  </Link>
+                </li>
+                <li />
+                <li>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-2.5 rounded-lg px-3 py-3 transition ${isActive("/wishlist")
+                      ? "bg-[#2F6844]/10 text-[#2F6844]"
+                      : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                  >
+                    <Heart size={18} className="text-[#2F6844]" />
+                    Wishlist
+                  </Link>
+                </li>
+                {isLoggedIn ? 
+                  (<>
+                    <li>
+                      <button
+                        onClick={() => {
+                          dispatch(logoutAsync());
+                          setIsOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </li>
+                  </>):
+                  (
+                  <>
+                  <li>
+                      <button
+                        onClick={() => {
+                          dispatch(logoutAsync());
+                          setIsOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          dispatch(logoutAsync());
+                          setIsOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </li>
+                    </>)
+                       } 
               </ul>
-
-              {isLoggedIn && (
-                <ul className="space-y-1 border-t border-[#E7E4DC] pt-4 font-medium">
-                  <li>
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
-                    >
-                      <LayoutDashboard size={18} className="text-[#2F6844]" />
-                      Dashboard
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/my-properties"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
-                    >
-                      <Building2 size={18} className="text-[#2F6844]" />
-                      My Properties
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/wishlist"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-3 text-gray-700 hover:bg-gray-50"
-                    >
-                      <Heart size={18} className="text-[#2F6844]" />
-                      Wishlist
-                    </Link>
-                  </li>
-                </ul>
-              )}
             </div>
 
-            {/* Bottom: auth area */}
+            {/*===== Bottom: auth area====== */}
             <div className="pt-6">
-              {!isLoggedIn ? (
+              {!isLoggedIn &&
                 <div className="flex gap-3">
                   <Link
                     to="/signin"
@@ -352,34 +378,8 @@ export function Navbar() {
                     Sign up
                   </Link>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between rounded-lg border border-[#E7E4DC] p-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={profileImage}
-                      alt="Profile"
-                      className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-[#14213D]">Welcome back</p>
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsOpen(false)}
-                        className="text-xs text-[#2F6844] hover:underline"
-                      >
-                        View profile
-                      </Link>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    aria-label="Logout"
-                    className="rounded-full p-2 text-red-600 hover:bg-red-50"
-                  >
-                    <LogOut size={18} />
-                  </button>
-                </div>
-              )}
+
+              }
             </div>
           </div>
         </div>
@@ -391,6 +391,8 @@ export function Navbar() {
 
 import { Outlet } from "react-router";
 import Footer from "./Footer.jsx";
+import { logoutAsync } from "../Redux/authSlice.js";
+import Loading from "./Loading.jsx";
 
 function Layout() {
   return (

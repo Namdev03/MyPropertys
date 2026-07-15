@@ -26,3 +26,12 @@ export const meApi = async () => {
         return error.response.data;
     }
 }
+//===== Logout Api =====
+export const logoutApi = async () => {
+    try {
+        const response = await axiosInstance.get(authApiEndPoint.LOGOUT);
+        return response.data;
+    } catch (error) {
+        return error.response.data;
+    }
+}

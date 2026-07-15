@@ -22,7 +22,6 @@ function Signin() {
 
   const onSubmit = async (payload) => {
     const data = { ...payload };
-
     // If user entered a phone number, add +91
     if (/^[6-9]\d{9}$/.test(data.emailOrPhone)) {
       data.emailOrPhone = `+91${data.emailOrPhone}`;
@@ -40,9 +39,8 @@ function Signin() {
     if (!isVerified) {
       nevigate(`/verify/${phone}`)
     }
-    else{
       nevigate('/')
-    }
+    
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4 py-10">

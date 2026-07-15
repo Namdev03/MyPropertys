@@ -32,14 +32,12 @@ function Footer() {
 
             {/* Social Icons */}
             <div className="mt-6 flex gap-3">
-
               <a
                 href="#"
                 className="rounded-full bg-slate-800 p-3 transition hover:bg-indigo-600"
               >
                 <Globe size={20} />
               </a>
-
               <a
                 href="#"
                 className="rounded-full bg-slate-800 p-3 transition hover:bg-pink-600"

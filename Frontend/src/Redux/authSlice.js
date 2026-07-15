@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { meApi, signInApi, signUpApi } from "../services/authApi.js";
+import { logoutApi, meApi, signInApi, signUpApi } from "../services/authApi.js";
 const initialState = {
   isLoading: true,
   isLoggedIn: false,
@@ -32,7 +32,15 @@ export const meAsync = createAsyncThunk('/user/me', async (_, { rejectWithValue 
     return rejectWithValue(error.response)
   }
 });
-
+//===== Logout api======
+export const logoutAsync = createAsyncThunk('/user/logout', async (_, { rejectWithValue }) => {
+  try {
+    const response = await logoutApi();
+    return response;
+  } catch (error) {
+    return rejectWithValue(error.response);
+  }
+});
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -51,24 +59,35 @@ const authSlice = createSlice({
     }).addCase(signInAsync.pending, (state) => {
       state.isLoading = true;
       state.isLoggedIn = false
-    }).addCase(signInAsync.fulfilled, (state,action) => {
+    }).addCase(signInAsync.fulfilled, (state, action) => {
       state.isLoading = false;
       state.isLoggedIn = true;
       state.userData = action.payload;
     }).addCase(signInAsync.rejected, (state) => {
       state.isLoading = true;
       state.isLoggedIn = false
-    }).addCase(meAsync.pending,(state)=>{
+    }).addCase(meAsync.pending, (state) => {
       state.isLoading = true;
       state.isLoggedIn = false;
-    }).addCase(meAsync.fulfilled,(state,action)=>{
+    }).addCase(meAsync.fulfilled, (state, action) => {
       state.isLoading = false;
       state.isLoggedIn = action.payload.success;
       state.userData = action.payload;
-    }).addCase(meAsync.rejected,(state)=>{
+    }).addCase(meAsync.rejected, (state) => {
       state.isLoading = true;
       state.isLoggedIn = false;
+    }).addCase(logoutAsync.pending, (state) => {
+      state.isLoading = true;
     })
+      .addCase(logoutAsync.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isLoggedIn = false;
+        state.userData = null;
+      })
+
+      .addCase(logoutAsync.rejected, (state) => {
+        state.isLoading = false;
+      })
   }
 })
 export const auth = authSlice.reducer

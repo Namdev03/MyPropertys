@@ -8,41 +8,61 @@ import ForgotPassword from './pages/ForgatePassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import HomePage from './pages/HomePage.jsx'
 import Layout from './components/NavBar.jsx'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { meAsync } from './Redux/authSlice.js'
 import Protected from './Router/Protected.jsx'
+import Loading from './components/Loading.jsx'
+import { userProfileAsync } from './Redux/userSlice.js'
 //=====App Function =====
 function App() {
-  const dispatch = useDispatch()
+  const { isLoading, isLoggedIn } = useSelector(
+    (store) => store.auth
+  );
+  const dispatch = useDispatch();
+  // Check login on app start
   useEffect(() => {
-    dispatch(meAsync())
-  })
+    dispatch(meAsync());
+    dispatch(userProfileAsync());
+  }, [dispatch]);
+
+  // Fetch profile after login
+  useEffect(() => {
+    if (isLoggedIn) {
+
+    }
+  }, [dispatch, isLoggedIn]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
-    <>
-      <Routes>
-
-        {/* Protected Routes */}
-        <Route element={<Protected />}>
-          <Route element={<Layout />}>
-            <Route path={pagePath.HOME} element={<HomePage />} />
-
-            {/* More protected pages */}
-            {/* <Route path={pagePath.PROPERTIES} element={<Properties />} /> */}
-            {/* <Route path={pagePath.CONTACT} element={<Contact />} /> */}
-            {/* <Route path="/profile" element={<Profile />} /> */}
-          </Route>
+    <Routes>
+      {/* Protected Routes */}
+      <Route element={<Layout />}>
+        <Route path={pagePath.HOME} element={<HomePage />} />
+        {/* More routes */}
+      </Route>
+      <Route element={<Protected />}>
+        <Route element={<Layout />}>
+          {/* <Route path={pagePath.HOME} element={<HomePage />} /> */}
+          {/* More routes */}
         </Route>
-
-        {/* Public Routes */}
-        <Route path={pagePath.SIGNUP} element={<Signup />} />
-        <Route path={pagePath.SIGNIN} element={<Signin />} />
-        <Route path="/verify/:phone" element={<Verify />} />
-        <Route path={pagePath.FORGOTPASSWORD} element={<ForgotPassword />} />
-        <Route path="/resetpassword/:phone" element={<ResetPassword />} />
-
-      </Routes>
-    </>
-  )
+      </Route>
+      {/* Public Routes */}
+      <Route path={pagePath.SIGNUP} element={<Signup />} />
+      <Route path={pagePath.SIGNIN} element={<Signin />} />
+      <Route path="/verify/:phone" element={<Verify />} />
+      <Route
+        path={pagePath.FORGOTPASSWORD}
+        element={<ForgotPassword />}
+      />
+      <Route
+        path="/resetpassword/:phone"
+        element={<ResetPassword />}
+      />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
