@@ -83,8 +83,6 @@ export const userSignIn = async (req, res) => {
         const token = jwt.sign(payload, process.env.SECRET_KEY, {
             expiresIn: "1d",
         });
-        console.log(token);
-
         res.cookie("token", token, cookieOption);
         // If phone is not verified, send OTP first
         if (!isExist.isPhoneVerified) {

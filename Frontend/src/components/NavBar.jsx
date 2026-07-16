@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate, } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Search,
@@ -16,7 +16,7 @@ export function Navbar() {
   const list = [
     { id: 1, name: "Home", path: "/" },
     { id: 2, name: "Properties", path: "/properties" },
-    { id: 3, name: "Contact", path: "/contact" },
+    { id: 3, name: "Contact us", path: "/contact-us" },
   ];
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -59,23 +59,21 @@ export function Navbar() {
     console.log(search);
     // Search logic here — e.g. navigate(`/properties?q=${encodeURIComponent(search)}`)
   };
-  const navigate = useNavigate()
-  if (!isLoggedIn) {
-    navigate('/signin')
-  }
+  const mobileLink =
+    "flex items-center gap-3 rounded-lg px-3 py-3 text-white transition hover:bg-white/10 hover:text-[#b6bdcc]";
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${scrolled
-          ? "border-[#E7E4DC] bg-[#FEFDFB]/90 shadow-md backdrop-blur-md"
-          : "border-transparent bg-[#FEFDFB]"
+        className={`sticky top-0 z-50 w-full bg-[#14213D] transition-all duration-300 ${scrolled
+          ? "border-b border-[#E7E4DC] shadow-md"
+          : ""
           }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
           {/* Logo */}
           <Link
             to="/"
-            className="shrink-0 font-serif text-2xl font-bold tracking-tight text-[#14213D] sm:text-[1.75rem]"
+            className="shrink-0 font-serif text-2xl font-bold tracking-tight text-indigo-500 sm:text-[1.75rem]"
           >
             MyProperty
           </Link>
@@ -87,18 +85,27 @@ export function Navbar() {
                 <Link
                   to={item.path}
                   className={`group relative py-1 text-[15px] font-medium transition-colors duration-200 ${isActive(item.path)
-                    ? "text-[#14213D]"
-                    : "text-gray-500 hover:text-[#14213D]"
+                    ? "text-[#f8f8f8]"
+                    : "text-[#f8f8f8] hover:text-[#b6bdcc]"
                     }`}
                 >
                   {item.name}
-                  <span
-                    className={`absolute -bottom-0.5 left-0 h-[2px] rounded-full bg-[#2F6844] transition-all duration-300 ${isActive(item.path) ? "w-full" : "w-0 group-hover:w-full"
-                      }`}
-                  />
                 </Link>
               </li>
+
             ))}
+            <li>
+              <Link
+                to="/my-properties"
+                onClick={() => setProfileOpen(false)}
+                className={`group relative flex items-center py-1 text-[15px] font-medium transition-colors duration-200 ${isActive("/my-properties")
+                  ? "text-[#f8f8f8]"
+                  : "text-[#f8f8f8]  hover:text-[#b6bdcc]"
+                  }`}
+              >
+                My Properties
+              </Link>
+            </li>
           </ul>
 
           {/* ======Search - Desktop====== */}
@@ -128,25 +135,29 @@ export function Navbar() {
               <>
                 <Link
                   to="/signin"
-                  className="rounded-full px-4 py-2 text-sm font-semibold text-[#14213D] transition hover:bg-[#14213D]/5"
-                >
+                  className={`group relative flex items-center py-1 text-[15px] font-medium transition-colors duration-200 ${isActive("/my-properties")
+                    ? "text-[#f8f8f8]"
+                    : "text-[#f8f8f8]  hover:text-[#b6bdcc]"
+                    }`}         >
                   Log in
                 </Link>
                 <Link
                   to="/signup"
-                  className="rounded-full bg-[#14213D] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2F6844]"
-                >
+                  className={`group relative flex items-center py-1 text-[15px] font-medium transition-colors duration-200 ${isActive("/my-properties")
+                    ? "text-[#f8f8f8]"
+                    : "text-[#f8f8f8]  hover:text-[#b6bdcc]"
+                    }`}         >
                   Sign up
                 </Link>
               </>
             ) : (
               <div className="relative" ref={profileRef}>
-                <button
+                <Link to={pagePath.PROFILE}
                   onClick={() => setProfileOpen((o) => !o)}
                   className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-[#14213D]/5"
                 >
                   <img
-                    // src={userData.user.profileImage || userData.payload.profileImage}
+                    src={userData?.user?.profileImage || userData?.payload?.profileImage}
                     alt="Profile"
                     className="h-9 w-9 rounded-full border-2 border-[#2F6844] object-cover"
                   />
@@ -155,7 +166,7 @@ export function Navbar() {
                     className={`text-gray-500 transition-transform duration-200 ${profileOpen ? "rotate-180" : ""
                       }`}
                   />
-                </button>
+                </Link>
                 {/* Dropdown */}
                 <div
                   className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-[#E7E4DC] bg-white py-2 shadow-lg transition-all duration-150 ${profileOpen
@@ -198,55 +209,65 @@ export function Navbar() {
 
           {/* ======Mobile Menu Button======*/}
           <button
-            onClick={() => setIsOpen(true)}
-            aria-label="Open menu"
-            className="text-[#14213D] lg:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            className="lg:hidden text-white z-[70]"
           >
-            <Menu size={26} />
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </nav>
 
       {/* ======Mobile Drawer + Backdrop====== */}
       <div
-        className={`fixed inset-0 z-[60] transition-opacity duration-300 lg:hidden ${isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        className={`fixed inset-0 z-[60] lg:hidden ${isOpen ? "visible" : "invisible"
           }`}
       >
         {/* Backdrop */}
         <div
           onClick={() => setIsOpen(false)}
-          className="absolute inset-0 bg-black/40"
+          className={`absolute inset-0  transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"
+            }`}
         />
 
         {/* Drawer panel */}
         <div
-          className={`absolute right-0 top-0 h-full w-[82%] max-w-sm bg-[#FEFDFB] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"
+          className={`absolute right-0 top-0 h-full w-[82%] max-w-sm  bg-[#14213D] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"
             }`}
         >
-          <div className="flex items-center justify-between border-b border-[#E7E4DC] px-5 py-4">
-            <div className="flex items-center justify-between rounded-lg  border-[#E7E4DC] p-3">
-              <div className="flex items-center gap-3">
-                <img
-                  // src={userData.user.profileImage}
-                  alt="Profile"
-                  className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
-                />
-                <div>
-                  <p className="text-sm font-semibold text-[#14213D]">Welcome back</p>
+          <div className="flex items-center justify-between border-b border-white/20 px-5 py-4">
+            <div className="flex items-center gap-3">
+              <img
+                src={
+                  isLoggedIn
+                    ? userData?.user?.profileImage ||
+                    "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+                    : "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+                }
+                alt="Profile"
+                className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
+              />
+
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {isLoggedIn ? "Welcome back" : "Welcome"}
+                </p>
+
+                {isLoggedIn && (
                   <Link
                     to="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="text-xs text-[#2F6844] hover:underline"
+                    className="text-xs text-[#2F6844] hover:text-[#b6bdcc]"
                   >
-                    View profile
+                    View Profile
                   </Link>
-                </div>
+                )}
               </div>
             </div>
+
             <button
               onClick={() => setIsOpen(false)}
-              aria-label="Close menu"
-              className="text-[#14213D]"
+              className="text-white hover:text-[#b6bdcc]"
             >
               <X size={24} />
             </button>
@@ -258,129 +279,101 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Search by city, area..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="flex-1 rounded-lg border border-[#E7E4DC] px-4 py-3 text-sm outline-none focus:border-[#2F6844]"
+                  placeholder="Search properties..."
+                  className="flex-1 rounded-lg border border-white/20 bg-[#1c2d52] px-4 py-3 text-sm text-white placeholder:text-gray-300 outline-none focus:border-[#2F6844]"
                 />
+
                 <button
                   onClick={handleSearch}
-                  aria-label="Search"
-                  className="rounded-lg bg-[#14213D] p-3 text-white transition hover:bg-[#2F6844]"
+                  className="rounded-lg bg-[#2F6844] p-3 text-white hover:bg-[#245437]"
                 >
                   <Search size={20} />
                 </button>
               </div>
 
               {/* ======Navigation====== */}
-              <ul className="space-y-1 font-medium">
+              <ul className="space-y-2">
+
                 {list.map((item) => (
                   <li key={item.id}>
                     <Link
                       to={item.path}
                       onClick={() => setIsOpen(false)}
-                      className={`block rounded-lg px-3 py-3 transition ${isActive(item.path)
-                        ? "bg-[#2F6844]/10 text-[#2F6844]"
-                        : "text-gray-700 hover:bg-gray-50"
+                      className={`${mobileLink} ${isActive(item.path) ? "bg-white/10" : ""
                         }`}
                     >
+                      {item.icon}
                       {item.name}
                     </Link>
                   </li>
                 ))}
+
                 <li>
                   <Link
                     to="/my-properties"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-[#14213D]/5"
+                    onClick={() => setIsOpen(false)}
+                    className={`${mobileLink} ${isActive("/my-properties") ? "bg-white/10" : ""
+                      }`}
                   >
-                    <Building2 size={16} className="text-[#2F6844]" />
+                    <Building2 size={18} className="text-[#2F6844]" />
                     My Properties
                   </Link>
                 </li>
-                <li />
+
                 <li>
                   <Link
                     to="/wishlist"
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-2.5 rounded-lg px-3 py-3 transition ${isActive("/wishlist")
-                      ? "bg-[#2F6844]/10 text-[#2F6844]"
-                      : "text-gray-700 hover:bg-gray-50"
+                    className={`${mobileLink} ${isActive("/wishlist") ? "bg-white/10" : ""
                       }`}
                   >
                     <Heart size={18} className="text-[#2F6844]" />
                     Wishlist
                   </Link>
                 </li>
-                {isLoggedIn ? 
-                  (<>
-                    <li>
-                      <button
-                        onClick={() => {
-                          dispatch(logoutAsync());
-                          setIsOpen(false);
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut size={18} />
-                        Logout
-                      </button>
-                    </li>
-                  </>):
-                  (
-                  <>
+
+                {isLoggedIn && (
                   <li>
-                      <button
-                        onClick={() => {
-                          dispatch(logoutAsync());
-                          setIsOpen(false);
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut size={18} />
-                        Logout
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => {
-                          dispatch(logoutAsync());
-                          setIsOpen(false);
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut size={18} />
-                        Logout
-                      </button>
-                    </li>
-                    </>)
-                       } 
+                    <button
+                      onClick={() => {
+                        dispatch(logoutAsync());
+                        setIsOpen(false);
+                      }}
+                      className={`${mobileLink} w-full text-left`}
+                    >
+                      <LogOut size={18} className="text-red-400" />
+                      Logout
+                    </button>
+                  </li>
+                )}
+
               </ul>
             </div>
 
             {/*===== Bottom: auth area====== */}
-            <div className="pt-6">
-              {!isLoggedIn &&
-                <div className="flex gap-3">
-                  <Link
-                    to="/signin"
-                    onClick={() => setIsOpen(false)}
-                    className="flex-1 rounded-lg border border-[#14213D] py-3 text-center font-semibold text-[#14213D]"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    to="/signup"
-                    onClick={() => setIsOpen(false)}
-                    className="flex-1 rounded-lg bg-[#14213D] py-3 text-center font-semibold text-white"
-                  >
-                    Sign up
-                  </Link>
-                </div>
+            {!isLoggedIn && (
+              <div className="flex gap-3 pt-5">
 
-              }
-            </div>
+                <Link
+                  to="/signin"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1 rounded-lg border border-white py-3 text-center font-semibold text-white transition hover:border-[#b6bdcc] hover:text-[#b6bdcc]"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1 rounded-lg bg-[#2F6844] py-3 text-center font-semibold text-white transition hover:bg-[#245437]"
+                >
+                  Sign Up
+                </Link>
+
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -393,6 +386,7 @@ import { Outlet } from "react-router";
 import Footer from "./Footer.jsx";
 import { logoutAsync } from "../Redux/authSlice.js";
 import Loading from "./Loading.jsx";
+import { pagePath } from "../Router/pagePaths.js";
 
 function Layout() {
   return (

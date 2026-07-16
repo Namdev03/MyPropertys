@@ -13,6 +13,7 @@ import { meAsync } from './Redux/authSlice.js'
 import Protected from './Router/Protected.jsx'
 import Loading from './components/Loading.jsx'
 import { userProfileAsync } from './Redux/userSlice.js'
+import Profile from './pages/profilePage.jsx'
 //=====App Function =====
 function App() {
   const { isLoading, isLoggedIn } = useSelector(
@@ -45,7 +46,7 @@ function App() {
       </Route>
       <Route element={<Protected />}>
         <Route element={<Layout />}>
-          {/* <Route path={pagePath.HOME} element={<HomePage />} /> */}
+          <Route path={pagePath.PROFILE} element={<Profile />} />
           {/* More routes */}
         </Route>
       </Route>
