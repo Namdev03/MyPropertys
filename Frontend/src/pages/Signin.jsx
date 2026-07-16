@@ -33,7 +33,6 @@ function Signin() {
     else {
     toast.success(response.message)
     }
-    console.log(response);
     const phone = response.payload.phone;
     const isVerified = response.payload.isPhoneVerified
     if (!isVerified) {

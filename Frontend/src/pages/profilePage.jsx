@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Mail,
   Phone,
@@ -10,27 +10,24 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutAsync } from "../Redux/authSlice";
+import { userProfileAsync } from "../Redux/userSlice.js";
+import Loading from "../components/Loading.jsx";
 
 export default function Profile() {
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch()
+  const { userData, isLoading } = useSelector((store) => store.user)
+  const { isLoggedIn } = useSelector((store) => store.auth)
 
-  // Example user data
-  const user = {
-    profileImage:
-      "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg",
+  useEffect(() => {
+    dispatch(userProfileAsync())
+  }, [dispatch,isLoggedIn])
 
-    fullName: "Namdev Kadam",
-
-    email: "namdev@gmail.com",
-
-    phone: "+91 9876543210",
-
-    address: "Raipur, Chhattisgarh",
-
-    booked: 8,
-
-    wishlist: 14,
-  };
+  if (isLoading) {
+    return <Loading />
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
@@ -50,7 +47,7 @@ export default function Profile() {
             <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-end">
 
               <img
-                src={user.profileImage}
+                src={userData?.user?.profileImage}
                 alt="Profile"
                 className="-mt-20 h-40 w-40 rounded-full border-8 border-white object-cover shadow-lg"
               />
@@ -58,7 +55,7 @@ export default function Profile() {
               <div className="flex-1 text-center lg:text-left">
 
                 <h1 className="text-3xl font-bold text-gray-800">
-                  {user.fullName}
+                  {userData?.user?.fullName}
                 </h1>
 
                 <p className="mt-1 text-gray-500">
@@ -70,15 +67,6 @@ export default function Profile() {
               {/* Right Buttons */}
 
               <div className="flex items-center gap-3">
-
-                <button className="flex items-center gap-2 rounded-xl bg-[#2F6844] px-5 py-3 text-white transition hover:bg-[#245536]">
-
-                  <Pencil size={18} />
-
-                  Edit Profile
-
-                </button>
-
                 <div className="relative">
 
                   <button
@@ -91,15 +79,21 @@ export default function Profile() {
                   {open && (
                     <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white shadow-xl border">
 
-                      <button className="flex w-full items-center gap-3 px-5 py-3 hover:bg-gray-100">
+                      <button className="flex w-full items-center gap-3 px-5 py-3 hover:bg-[#b4c8bb]">
 
                         <Settings size={18} />
 
                         Settings
 
                       </button>
+                      <button className="flex items-center gap-2 rounded-xl  px-5 py-3 text-black transition hover:bg-[#b4c8bb]">
 
-                      <button className="flex w-full items-center gap-3 px-5 py-3 text-red-600 hover:bg-red-50">
+                        <Pencil size={18} />
+
+                        Edit Profile
+
+                      </button>
+                      <button onClick={() => dispatch(logoutAsync())} className="flex w-full items-center gap-3 px-5 py-3 text-red-600 hover:bg-[#b4c8bb]">
 
                         <LogOut size={18} />
 
@@ -132,7 +126,7 @@ export default function Profile() {
 
                     <Mail className="text-[#2F6844]" />
 
-                    <span>{user.email}</span>
+                    <span>{userData?.user?.email}</span>
 
                   </div>
 
@@ -140,7 +134,7 @@ export default function Profile() {
 
                     <Phone className="text-[#2F6844]" />
 
-                    <span>{user.phone}</span>
+                    <span>{userData?.user?.phone}</span>
 
                   </div>
 
@@ -148,7 +142,7 @@ export default function Profile() {
 
                     <MapPin className="text-[#2F6844]" />
 
-                    <span>{user.address}</span>
+                    <span>{userData?.user?.address}</span>
 
                   </div>
 
@@ -168,7 +162,7 @@ export default function Profile() {
                   />
 
                   <h2 className="text-4xl font-bold">
-                    {user.booked}
+                    {userData?.user?.booked}
                   </h2>
 
                   <p className="mt-2">
@@ -185,7 +179,7 @@ export default function Profile() {
                   />
 
                   <h2 className="text-4xl font-bold">
-                    {user.wishlist}
+                    {userData?.user?.wishlist}
                   </h2>
 
                   <p className="mt-2">

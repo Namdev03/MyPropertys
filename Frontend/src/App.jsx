@@ -14,6 +14,8 @@ import Protected from './Router/Protected.jsx'
 import Loading from './components/Loading.jsx'
 import { userProfileAsync } from './Redux/userSlice.js'
 import Profile from './pages/profilePage.jsx'
+import Properties from './pages/Properties.jsx'
+import { propertiesAsync } from './Redux/propertySlice.js'
 //=====App Function =====
 function App() {
   const { isLoading, isLoggedIn } = useSelector(
@@ -23,13 +25,14 @@ function App() {
   // Check login on app start
   useEffect(() => {
     dispatch(meAsync());
-    dispatch(userProfileAsync());
+
   }, [dispatch]);
 
   // Fetch profile after login
   useEffect(() => {
     if (isLoggedIn) {
-
+      dispatch(userProfileAsync());
+      dispatch(propertiesAsync())
     }
   }, [dispatch, isLoggedIn]);
 
@@ -42,11 +45,13 @@ function App() {
       {/* Protected Routes */}
       <Route element={<Layout />}>
         <Route path={pagePath.HOME} element={<HomePage />} />
+        <Route path={pagePath.PROPERTIES} element={<Properties />} />
         {/* More routes */}
       </Route>
       <Route element={<Protected />}>
         <Route element={<Layout />}>
           <Route path={pagePath.PROFILE} element={<Profile />} />
+          <Route path={pagePath.PROPERTIES} element={<Properties />} />
           {/* More routes */}
         </Route>
       </Route>

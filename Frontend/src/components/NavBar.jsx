@@ -237,17 +237,18 @@ export function Navbar() {
         >
           <div className="flex items-center justify-between border-b border-white/20 px-5 py-4">
             <div className="flex items-center gap-3">
-              <img
-                src={
-                  isLoggedIn
-                    ? userData?.user?.profileImage ||
-                    "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
-                    : "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
-                }
-                alt="Profile"
-                className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
-              />
-
+              <Link  to={pagePath.PROFILE}>
+                <img
+                  src={
+                    isLoggedIn
+                      ? userData?.user?.profileImage || userData?.payload?.profileImage ||
+                      "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+                      : "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+                  }
+                  alt="Profile"
+                  className="h-11 w-11 rounded-full border-2 border-[#2F6844] object-cover"
+                />
+              </Link>
               <div>
                 <p className="text-sm font-semibold text-white">
                   {isLoggedIn ? "Welcome back" : "Welcome"}
@@ -255,7 +256,7 @@ export function Navbar() {
 
                 {isLoggedIn && (
                   <Link
-                    to="/profile"
+                    to={pagePath.PROFILE}
                     onClick={() => setIsOpen(false)}
                     className="text-xs text-[#2F6844] hover:text-[#b6bdcc]"
                   >

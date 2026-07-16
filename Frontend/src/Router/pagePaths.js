@@ -6,6 +6,7 @@ export const pagePath = {
     VERIFY: '/verify',
     FORGOTPASSWORD: "/forgotpassword",
     PROFILE:"/profile",
+    PROPERTIES:"/properties",
     //=====Owner=====
     OWNERSIGNUP: 'owner/signup',
     OWNERSIGNIN: 'owner/signin',
