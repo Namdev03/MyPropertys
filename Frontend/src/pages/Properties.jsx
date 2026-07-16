@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux"
 function Properties() {
-  const { propertyData } = useSelector((store) => store.properties);
+  const { propertiesData } = useSelector((store) => store.properties);
   return (
     <section className="min-h-screen bg-gray-100 py-10">
 
@@ -31,7 +31,7 @@ function Properties() {
 
         <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
 
-          {propertyData?.properties?.map((property) => (
+          {propertiesData?.properties?.map((property) => (
 
             <div
               key={property?._id}
@@ -69,7 +69,6 @@ function Properties() {
               </div>
 
               {/* Body */}
-
               <div className="space-y-4 p-5">
                 <Link to={`/property/${property?._id}`}>
                   <h2 className="line-clamp-1 text-2xl font-bold text-[#14213D]">

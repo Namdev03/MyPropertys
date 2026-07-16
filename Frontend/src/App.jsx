@@ -16,6 +16,7 @@ import { userProfileAsync } from './Redux/userSlice.js'
 import Profile from './pages/profilePage.jsx'
 import Properties from './pages/Properties.jsx'
 import { propertiesAsync } from './Redux/propertySlice.js'
+import PropertyDetails from './pages/property.jsx'
 //=====App Function =====
 function App() {
   const { isLoading, isLoggedIn } = useSelector(
@@ -52,6 +53,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path={pagePath.PROFILE} element={<Profile />} />
           <Route path={pagePath.PROPERTIES} element={<Properties />} />
+          <Route path={`/property/:id`} element={<PropertyDetails />} />
           {/* More routes */}
         </Route>
       </Route>

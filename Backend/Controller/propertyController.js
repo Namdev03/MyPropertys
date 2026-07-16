@@ -141,13 +141,13 @@ export const allProperty = async (req, res) => {
 export const getProperty = async (req, res) => {
   try {
     const propertyId = req.params.id;
-    const properties = await Property.findById(propertyId)
+    const property = await Property.findById(propertyId)
       .populate("owner", "fullName email phone profileImage")
       .sort({ createdAt: -1 });
-    return res.status(200).json({
+    return res.status(200).json({ 
       success: true,
       message: "Properties fetched successfully.",
-      properties
+      property
     });
   } catch (error) {
     return res.status(500).json({
