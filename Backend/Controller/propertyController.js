@@ -3,6 +3,7 @@ import cloudinary from "../config/cloudinary.js";
 import getDataUri from "../utils/dataUri.js";
 import { User } from "../Model/userModel.js";
 import { sendEmail } from "../Utils/sendEmail.js";
+import { Booking } from "../Model/bookingModel.js";
 
 //=====Add New Property=====//
 export const addNewProperty = async (req, res) => {
@@ -144,7 +145,7 @@ export const getProperty = async (req, res) => {
     const property = await Property.findById(propertyId)
       .populate("owner", "fullName email phone profileImage")
       .sort({ createdAt: -1 });
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: true,
       message: "Properties fetched successfully.",
       property
@@ -345,17 +346,28 @@ export const bookProperty = async (req, res) => {
   try {
     const userId = req.id;
     const propertyId = req.params.id;
-    const {phone,email,checkIn,fullName,chechOut} = req.body;
-    // Check user
+
+    const {
+      fullName,
+      email,
+      phone,
+      checkIn,
+      checkOut,
+    } = req.body;
+
+    // Check User
     const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
-    // Check property
+
+    // Check Property
     const property = await Property.findById(propertyId);
+
     if (!property) {
       return res.status(404).json({
         success: false,
@@ -363,7 +375,7 @@ export const bookProperty = async (req, res) => {
       });
     }
 
-    // Check property availability
+    // Check Availability
     if (!property.isAvailable) {
       return res.status(400).json({
         success: false,
@@ -371,84 +383,57 @@ export const bookProperty = async (req, res) => {
       });
     }
 
-    // Check if already booked
-    const isBooked = user.booked.includes(propertyId);
+    // Prevent duplicate booking
+    const alreadyBooked = await Booking.findOne({
+      user: userId,
+      property: propertyId,
+    });
 
-    if (isBooked) {
-      await Promise.all([
-        User.updateOne(
-          { _id: userId },
-          { $pull: { booked: propertyId } }
-        ),
-        Property.updateOne(
-          { _id: propertyId },
-          { $pull: { bookedby: userId } }
-        ),
-      ]);
-      await sendEmail({
-        to: user.email,
-        subject: "Property Booking Canceletion Confirmation 🏠",
-        html: `
-    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:8px;">
-      
-      <h2 style="color:#28a745;">Booking Canceled 🎉</h2>
-
-      <p>Hello <strong>${user.fullName}</strong>,</p>
-
-      <p>Your booking has been canceled successfully.</p>
-
-      <hr>
-
-      <h3>Property Details</h3>
-
-      <p><strong>Property:</strong> ${property.title}</p>
-
-      <p><strong>Address:</strong></p>
-
-      <p>
-        ${property.address}<br>
-        ${property.city}, ${property.state}<br>
-        ${property.country}
-      </p>
-
-      <p><strong>Price:</strong> ₹${property.price}</p>
-
-      <p><strong>Booking Date:</strong> ${new Date().toLocaleDateString()}</p>
-
-      <hr>
-
-      <p>Thank you for choosing <strong>MyProperty</strong>.</p>
-
-      <p>Best Regards,<br><strong>MyProperty Team</strong></p>
-
-    </div>
-  `,
-      });
-      return res.status(200).json({
-        success: true,
-        booked: false,
-        message: "Booking cancelled successfully",
+    if (alreadyBooked) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already booked this property.",
       });
     }
 
-    // Book property
+    // Create Booking
+    const booking = await Booking.create({
+      user: userId,
+      property: propertyId,
+      fullName,
+      email,
+      phone,
+      checkIn,
+      checkOut,
+    });
+
+    // Update User & Property
     await Promise.all([
-      User.updateOne(
-        { _id: userId },
-        { $addToSet: { booked: propertyId } }
+      User.findByIdAndUpdate(
+        userId,
+        {
+          $addToSet: {
+            booked: booking._id,
+          },
+        }
       ),
-      Property.updateOne(
-        { _id: propertyId },
-        { $addToSet: { bookedby: userId } }
+
+      Property.findByIdAndUpdate(
+        propertyId,
+        {
+          $addToSet: {
+            bookedBy: userId,
+          },
+        }
       ),
     ]);
+
+    // Send Email
     await sendEmail({
       to: email,
       subject: "Property Booking Confirmation 🏠",
       html: `
-    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:8px;">
-      
-      <h2 style="color:#28a745;">Booking Confirmed 🎉</h2>
+      <h2>Booking Confirmed 🎉</h2>
 
       <p>Hello <strong>${fullName}</strong>,</p>
 
@@ -456,11 +441,7 @@ export const bookProperty = async (req, res) => {
 
       <hr>
 
-      <h3>Property Details</h3>
-
       <p><strong>Property:</strong> ${property.title}</p>
-
-      <p><strong>Address:</strong></p>
 
       <p>
         ${property.address}<br>
@@ -470,23 +451,133 @@ export const bookProperty = async (req, res) => {
 
       <p><strong>Price:</strong> ₹${property.price}</p>
 
-      <p><strong>Booking Date:</strong> ${checkIn} to ${chechOut}</p>
+      <p><strong>Check In:</strong> ${checkIn}</p>
+
+      <p><strong>Check Out:</strong> ${checkOut}</p>
 
       <hr>
 
       <p>Thank you for choosing <strong>MyProperty</strong>.</p>
-
-      <p>Best Regards,<br><strong>MyProperty Team</strong></p>
-
-    </div>
-  `,
+      `,
     });
-    return res.status(200).json({
+
+    return res.status(201).json({
       success: true,
-      booked: true,
-      message: "Property booked successfully",
+      booking,
+      message: "Property booked successfully.",
     });
   } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// ===== Cancel Booking =====
+export const cancelBooking = async (req, res) => {
+  try {
+    const userId = req.id;
+    const propertyId = req.params.id;
+
+    // Check User
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Check Property
+    const property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found.",
+      });
+    }
+
+    // Check Booking
+    const booking = await Booking.findOne({
+      user: userId,
+      property: propertyId,
+    });
+
+    if (!booking) {
+      return res.status(400).json({
+        success: false,
+        message: "You have not booked this property.",
+      });
+    }
+
+    // Remove Booking from User
+    await User.findByIdAndUpdate(userId, {
+      $pull: {
+        booked: booking._id,
+      },
+    });
+
+    // Remove User from Property
+    await Property.findByIdAndUpdate(propertyId, {
+      $pull: {
+        bookedBy: userId, // Use bookedby if that's your schema
+      },
+    });
+
+    // Delete Booking Document
+    await Booking.findByIdAndDelete(booking._id);
+
+    // Send Email
+    await sendEmail({
+      to: user.email,
+      subject: "Property Booking Cancellation Confirmation 🏠",
+      html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;border:1px solid #ddd;border-radius:8px">
+
+        <h2 style="color:#dc3545;">Booking Cancelled</h2>
+
+        <p>Hello <strong>${user.fullName}</strong>,</p>
+
+        <p>Your booking has been cancelled successfully.</p>
+
+        <hr>
+
+        <h3>Property Details</h3>
+
+        <p><strong>Property:</strong> ${property.title}</p>
+
+        <p>
+          ${property.address}<br>
+          ${property.city}, ${property.state}<br>
+          ${property.country}
+        </p>
+
+        <p><strong>Price:</strong> ₹${property.price}</p>
+
+        <p><strong>Cancelled On:</strong> ${new Date().toLocaleDateString()}</p>
+
+        <hr>
+
+        <p>Thank you for choosing <strong>MyProperty</strong>.</p>
+
+        <p>Best Regards,<br><strong>MyProperty Team</strong></p>
+
+      </div>
+      `,
+    });
+
+    return res.status(200).json({
+      success: true,
+      booked: false,
+      message: "Booking cancelled successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       success: false,
       message: error.message,

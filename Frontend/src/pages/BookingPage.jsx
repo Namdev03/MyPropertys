@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { bookPropertyAsync, propertyAsync } from "../Redux/propertySlice.js";
 import Loading from "../components/Loading.jsx";
+import { toast } from "react-toastify";
+import { axiosInstance } from "../services/axiosInstance.js";
 
 const BookingPage = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    phone: "+91 ",
     checkIn: "",
     checkOut: "",
   });
@@ -18,7 +20,7 @@ const BookingPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { propertyData, isLoading, bookingLoading } = useSelector(
+  const { propertyData, isLoading } = useSelector(
     (store) => store.properties
   );
 
@@ -32,27 +34,34 @@ const BookingPage = () => {
       [e.target.name]: e.target.value,
     }));
   };
-
-  const handleSubmit = (e) => {
+const navigate = useNavigate()
+  const booking = async (e) => {
     e.preventDefault();
 
     if (new Date(formData.checkOut) <= new Date(formData.checkIn)) {
-      alert("Check Out date must be greater than Check In date.");
+      toast.error("Check Out date must be greater than Check In date.");
       return;
     }
 
-    dispatch(
-      bookPropertyAsync({
-        id,
-        formData,
-      })
-    );
+    try {
+      const response = await axiosInstance.post(
+        `/property/book/${id}`,
+        formData
+      );
+      if (!response.data.success) {
+        return toast.warn(response.data.message);
+      }
+
+     toast.success(response.data.message);
+      // Optional: Reset form
+      navigate(`/property/${id}`)
+  
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Something went wrong."
+      );
+    }
   };
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
   const property = propertyData?.property;
 
   return (
@@ -123,7 +132,7 @@ const BookingPage = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={booking} className="space-y-6">
             <div>
               <label className="block mb-2 font-medium">Full Name</label>
 
@@ -205,10 +214,10 @@ const BookingPage = () => {
 
             <button
               type="submit"
-              disabled={bookingLoading}
+              // disabled={bookingLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-4 rounded-xl disabled:bg-gray-400"
             >
-              {bookingLoading ? "Booking..." : "Confirm Booking"}
+              Book
             </button>
           </form>
         </div>

@@ -4,7 +4,6 @@ const initialState = {
     isLoading: true,
     propertiesData: [],
     propertyData:null,
-    bookingLoading:false
 }
 //=====Get All properties =====
 export const propertiesAsync = createAsyncThunk("/property/properties", async (_, { rejectWithValue }) => {
@@ -25,14 +24,23 @@ export const propertyAsync = createAsyncThunk('/property/property/:id',async (id
     }
 });
 //=====Book property =====
-export const bookPropertyAsync = createAsyncThunk('/property/book/:id',async ({id,payload},{rejectWithValue}) => {
+export const bookPropertyAsync = createAsyncThunk(
+  "property/bookProperty",
+  async ({ id, formData }, { rejectWithValue }) => {
     try {
-         const response = await axiosInstance.post(`/property/book/${id}`,payload); 
-        return response.data
+      const response = await axiosInstance.post(
+        `/property/book/${id}`,
+        formData
+      );
+
+      return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data)
+      return rejectWithValue(
+        error.response?.data || { message: error.message }
+      );
     }
-})
+  }
+);
 const propertySlice = createSlice({
     name: "property",
     initialState,
@@ -52,13 +60,6 @@ const propertySlice = createSlice({
             state.propertyData = action.payload
         }).addCase(propertyAsync.rejected, (state) => {
             state.isLoading = false;
-        }).addCase(bookPropertyAsync.pending, (state) => {
-            state.bookingLoading = false;
-        }).addCase(bookPropertyAsync.fulfilled, (state,action) => {
-            state.bookingLoading = false;
-            state.propertiesData = action.payload
-        }).addCase(bookPropertyAsync.rejected, (state) => {
-            state.bookingLoading = true;
         })
     }
 })
