@@ -59,10 +59,10 @@ const propertySchema = new Schema(
       default: "India",
     },
     amenities:
-    {
+    [{
       type: String,
       enum: ["wifi", "gym", "swimming pool", "parking", "garden", "security", "elevator"],
-    },
+    }],
     isAvailable: {
       type: Boolean,
       default: true,

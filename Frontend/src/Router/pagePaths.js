@@ -7,6 +7,7 @@ export const pagePath = {
     FORGOTPASSWORD: "/forgotpassword",
     PROFILE:"/profile",
     PROPERTIES:"/properties",
+    BOOKING:"/property/book",
     //=====Owner=====
     OWNERSIGNUP: 'owner/signup',
     OWNERSIGNIN: 'owner/signin',

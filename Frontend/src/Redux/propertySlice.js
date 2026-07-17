@@ -3,7 +3,8 @@ import { axiosInstance } from "../services/axiosInstance";
 const initialState = {
     isLoading: true,
     propertiesData: [],
-    propertyData:null
+    propertyData:null,
+    bookingLoading:false
 }
 //=====Get All properties =====
 export const propertiesAsync = createAsyncThunk("/property/properties", async (_, { rejectWithValue }) => {
@@ -18,6 +19,15 @@ export const propertiesAsync = createAsyncThunk("/property/properties", async (_
 export const propertyAsync = createAsyncThunk('/property/property/:id',async (id,{rejectWithValue}) => {
     try {
          const response = await axiosInstance.get(`/property/property/${id}`);
+        return response.data
+    } catch (error) {
+        return rejectWithValue(error.response.data)
+    }
+});
+//=====Book property =====
+export const bookPropertyAsync = createAsyncThunk('/property/book/:id',async ({id,payload},{rejectWithValue}) => {
+    try {
+         const response = await axiosInstance.post(`/property/book/${id}`,payload); 
         return response.data
     } catch (error) {
         return rejectWithValue(error.response.data)
@@ -41,7 +51,14 @@ const propertySlice = createSlice({
             state.isLoading = false;
             state.propertyData = action.payload
         }).addCase(propertyAsync.rejected, (state) => {
-            state.isLoading = true;
+            state.isLoading = false;
+        }).addCase(bookPropertyAsync.pending, (state) => {
+            state.bookingLoading = false;
+        }).addCase(bookPropertyAsync.fulfilled, (state,action) => {
+            state.bookingLoading = false;
+            state.propertiesData = action.payload
+        }).addCase(bookPropertyAsync.rejected, (state) => {
+            state.bookingLoading = true;
         })
     }
 })

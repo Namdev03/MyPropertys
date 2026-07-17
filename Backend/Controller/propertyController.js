@@ -345,7 +345,7 @@ export const bookProperty = async (req, res) => {
   try {
     const userId = req.id;
     const propertyId = req.params.id;
-
+    const {phone,email,checkIn,fullName,chechOut} = req.body;
     // Check user
     const user = await User.findById(userId);
     if (!user) {
@@ -354,7 +354,6 @@ export const bookProperty = async (req, res) => {
         message: "User not found",
       });
     }
-
     // Check property
     const property = await Property.findById(propertyId);
     if (!property) {
@@ -444,14 +443,14 @@ export const bookProperty = async (req, res) => {
       ),
     ]);
     await sendEmail({
-      to: user.email,
+      to: email,
       subject: "Property Booking Confirmation 🏠",
       html: `
     <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:8px;">
       
       <h2 style="color:#28a745;">Booking Confirmed 🎉</h2>
 
-      <p>Hello <strong>${user.fullName}</strong>,</p>
+      <p>Hello <strong>${fullName}</strong>,</p>
 
       <p>Your booking has been confirmed successfully.</p>
 
@@ -471,7 +470,7 @@ export const bookProperty = async (req, res) => {
 
       <p><strong>Price:</strong> ₹${property.price}</p>
 
-      <p><strong>Booking Date:</strong> ${new Date().toLocaleDateString()}</p>
+      <p><strong>Booking Date:</strong> ${checkIn} to ${chechOut}</p>
 
       <hr>
 

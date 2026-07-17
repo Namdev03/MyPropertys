@@ -17,6 +17,7 @@ import Profile from './pages/profilePage.jsx'
 import Properties from './pages/Properties.jsx'
 import { propertiesAsync } from './Redux/propertySlice.js'
 import PropertyDetails from './pages/property.jsx'
+import BookingPage from './pages/BookingPage.jsx'
 //=====App Function =====
 function App() {
   const { isLoading, isLoggedIn } = useSelector(
@@ -54,6 +55,7 @@ function App() {
           <Route path={pagePath.PROFILE} element={<Profile />} />
           <Route path={pagePath.PROPERTIES} element={<Properties />} />
           <Route path={`/property/:id`} element={<PropertyDetails />} />
+          <Route path={`/property/book/:id`} element={<BookingPage />} />
           {/* More routes */}
         </Route>
       </Route>

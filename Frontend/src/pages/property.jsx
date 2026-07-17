@@ -13,11 +13,13 @@ import {
     Shield,
     Building2,
     CheckCircle,
+
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { propertyAsync } from "../Redux/propertySlice.js";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import Loading from "../components/Loading.jsx";
+import { pagePath } from "../Router/pagePaths.js";
 
 export default function PropertyDetails() {
 
@@ -29,6 +31,22 @@ export default function PropertyDetails() {
     const { propertyData, isLoaing } = useSelector((store) => store.properties)
 
     const property = propertyData?.property || {};
+    // Combine all images
+    const allImages = [
+        ...(property?.propertyImages || []),
+        ...(property?.roomImages || []),
+        ...(property?.hallImages || []),
+        ...(property?.bathroomImages || []),
+    ];
+    const amenityIcons = {
+        wifi: <Wifi className="text-[#2F6844]" />,
+        parking: <Car className="text-[#2F6844]" />,
+        garden: <Trees className="text-[#2F6844]" />,
+        gym: <Dumbbell className="text-[#2F6844]" />,
+        security: <Shield className="text-[#2F6844]" />,
+        "swimming pool": <CheckCircle className="text-[#2F6844]" />,
+        elevator: <Building2 className="text-[#2F6844]" />,
+    };
     if (isLoaing) {
         return <Loading />
     }
@@ -39,26 +57,50 @@ export default function PropertyDetails() {
 
                 {/* Image Gallery */}
 
-                <div className="grid gap-3 lg:grid-cols-4">
+                <div className="grid gap-4 lg:grid-cols-4">
 
+                    {/* Large Image */}
                     <div className="lg:col-span-2">
                         <img
-                            src={property?.propertyImages}
-                            className="h-[420px] w-full rounded-2xl object-cover"
+                            src={allImages[0] || "/placeholder.jpg"}
+                            alt="Property"
+                            className="h-[500px] w-full rounded-2xl object-cover shadow-lg transition duration-300 hover:brightness-95"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 lg:col-span-2">
-                        <img
-                            key={id}
-                            src={property?.propertyImages}
-
-                            className="h-[200px] w-full cursor-pointer rounded-xl object-cover transition hover:scale-95"
-                        />
+                    {/* Right Side Images */}
+                    <div className="grid grid-cols-2 gap-4 lg:col-span-2">
+                        {allImages.slice(1, 5).map((image, index) => (
+                            <img
+                                key={index}
+                                src={image}
+                                alt={`Property ${index + 2}`}
+                                className="h-[242px] w-full rounded-xl object-cover shadow-lg cursor-pointer transition duration-300 hover:scale-95"
+                            />
+                        ))}
                     </div>
 
                 </div>
 
+                {/* Remaining Images */}
+                {allImages.length > 5 && (
+                    <div className="mt-8">
+                        <h2 className="mb-5 text-2xl font-bold text-[#14213D]">
+                            Property Gallery
+                        </h2>
+
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                            {allImages.slice(5).map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={image}
+                                    alt={`Gallery ${index + 6}`}
+                                    className="h-64 w-full rounded-xl object-cover shadow-lg transition duration-300 hover:scale-105 cursor-pointer"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {/* Title */}
 
                 <div className="mt-8 flex flex-col justify-between gap-5 lg:flex-row">
@@ -99,20 +141,31 @@ export default function PropertyDetails() {
                             ₹{property?.price}
                         </h2>
 
-                        <div className="mt-5 flex justify-end gap-3">
-                            <button className="flex-1 rounded-xl bg-green-700 py-4 text-white transition hover:bg-[#babfcb]">
-                                Book
-                            </button>
-                            <button className="rounded-xl border p-3 hover:bg-red-50">
-                                <Heart />
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+
+                            {/* Book Button */}
+                            <Link to={`${pagePath.BOOKING}/${id}`}
+                            
+                                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-emerald-700 hover:to-green-800 hover:shadow-xl active:scale-95 sm:min-w-[220px]"
+                            >
+                                <Building2 size={20} />
+                                Book Now
+                            </Link>
+                            {/* Wishlist */}
+                            <button
+                                className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:scale-105 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                            >
+                                <Heart size={20} />
                             </button>
 
-                            <button className="rounded-xl border p-3 hover:bg-gray-100">
-                                <Share2 />
+                            {/* Share */}
+                            <button
+                                className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:scale-105 hover:border-gray-300 hover:bg-gray-100"
+                            >
+                                <Share2 size={20} />
                             </button>
 
                         </div>
-
                     </div>
 
                 </div>
@@ -158,49 +211,23 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Amenities */}
-
                 <div className="mt-8 rounded-2xl bg-white p-8 shadow">
-
                     <h2 className="mb-6 text-2xl font-bold text-[#14213D]">
                         Amenities
                     </h2>
 
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
-                        <div className="flex items-center gap-3">
-                            <Wifi className="text-[#2F6844]" />
-                            WiFi
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <Car className="text-[#2F6844]" />
-                            Parking
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <Dumbbell className="text-[#2F6844]" />
-                            Gym
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <Trees className="text-[#2F6844]" />
-                            Garden
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <Shield className="text-[#2F6844]" />
-                            Security
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <CheckCircle className="text-[#2F6844]" />
-                            Swimming Pool
-                        </div>
-
+                        {property?.amenities?.map((amenity, index) => (
+                            <div
+                                key={index}
+                                className="flex items-center gap-3 rounded-lg border p-4 transition hover:bg-gray-50"
+                            >
+                                {amenityIcons[amenity]}
+                                <span className="capitalize">{amenity}</span>
+                            </div>
+                        ))}
                     </div>
-
                 </div>
-
                 {/* Interior Images */}
             </div>
 
